@@ -377,7 +377,11 @@ test('renames take effect on their date and keep history', { skip }, async () =>
   assert.equal(future.body.node.nameZh, '财务部');
 
   const yesterday = await admin.get(`/org/tree?date=${addDays(start, -1)}`);
-  assert.equal(yesterday.body.nodes.length, 0, 'nothing existed before today');
+  assert.deepEqual(
+    yesterday.body.nodes.map((n) => n.id),
+    [nodes.group],
+    'only the group existed before today'
+  );
 
   // Changes are appended after the latest one, never inserted into the past.
   const tooEarly = await admin.patch(`/org/nodes/${nodes.deptA}`, {
@@ -600,3 +604,63 @@ test(
     assert.deepEqual(fresh.body.items[0].memberships, []);
   }
 );
+
+test('existing structure can be entered with past start dates', { skip }, async () => {
+  const group = await admin.get(`/org/nodes/${nodes.group}`);
+  assert.equal(group.body.node.validFrom, '2000-01-01', 'the group exists from 2000');
+
+  // A company entered today, then a team that really started in 2025.
+  const company = await admin.post('/org/nodes', {
+    parentId: nodes.group,
+    type: 'entity',
+    nameEn: 'Maku Pro Oy',
+  });
+  assert.equal(company.status, 201);
+  const early = await admin.post('/org/nodes', {
+    parentId: company.body.id,
+    type: 'team',
+    nameEn: 'Maku Ops',
+    effectiveDate: '2025-08-25',
+  });
+  assert.equal(early.status, 400);
+  assert.equal(early.body.code, 'parent_not_in_effect');
+  assert.equal(early.body.details.parentFrom, company.body.validFrom);
+
+  // Moving the company's start earlier fixes it.
+  const backdated = await admin.patch(`/org/nodes/${company.body.id}`, {
+    effectiveDate: '2025-01-01',
+  });
+  assert.equal(backdated.status, 200, JSON.stringify(backdated.body));
+  assert.equal(backdated.body.validFrom, '2025-01-01');
+  const history = await admin.get(`/org/nodes/${company.body.id}`);
+  assert.equal(history.body.history.length, 1, 'moving the start adds no history');
+
+  const team = await admin.post('/org/nodes', {
+    parentId: company.body.id,
+    type: 'team',
+    nameEn: 'Maku Ops',
+    effectiveDate: '2025-08-25',
+  });
+  assert.equal(team.status, 201);
+
+  // Not before the parent, and not for nodes that already have history.
+  const beforeParent = await admin.patch(`/org/nodes/${team.body.id}`, {
+    effectiveDate: '2024-12-31',
+  });
+  assert.equal(beforeParent.body.code, 'parent_not_in_effect');
+  const withHistory = await admin.patch(`/org/nodes/${nodes.deptA}`, {
+    effectiveDate: '2020-01-01',
+  });
+  assert.equal(withHistory.body.code, 'effective_date_too_early');
+  assert.ok(withHistory.body.details.from);
+
+  // People cannot be assigned before the node existed.
+  const tooSoon = await admin.post('/memberships', {
+    userId: people.member.id,
+    nodeId: team.body.id,
+    role: 'member',
+    effectiveDate: '2025-01-01',
+  });
+  assert.equal(tooSoon.body.code, 'node_not_in_effect');
+  assert.equal(tooSoon.body.details.nodeFrom, '2025-08-25');
+});

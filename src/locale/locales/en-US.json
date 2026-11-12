@@ -740,12 +740,15 @@
       "node_has_future_memberships": "The node has memberships that start later. Handle them first.",
       "last_group_admin": "The group needs at least one admin.",
       "membership_exists": "The person already has this role on this node.",
-      "effective_date_too_early": "The effective date cannot be before the last change.",
+      "effective_date_too_early": "The effective date cannot be before the last change ({date}).",
       "root_node": "The group node cannot be moved or deactivated.",
       "invalid_role": "Admins can only be set on the group node.",
       "invalid_reports_to": "The reporting line is not valid.",
       "invalid_user": "The person does not exist or has been deactivated.",
-      "node_inactive": "The node has been deactivated."
+      "node_inactive": "The node has been deactivated.",
+      "parent_not_in_effect": "The parent node is in effect from {date}, so the effective date cannot be earlier. To go further back, move the parent’s effective date earlier first.",
+      "parent_inactive": "The parent node has been deactivated.",
+      "node_not_in_effect": "The node is in effect from {date}, so the effective date cannot be earlier."
     }
   }
 }

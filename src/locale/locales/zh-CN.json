@@ -740,12 +740,15 @@
       "node_has_future_memberships": "该节点有尚未生效的成员，请先处理。",
       "last_group_admin": "集团至少需要一名管理员。",
       "membership_exists": "该成员在此节点已有该角色。",
-      "effective_date_too_early": "生效日期不能早于上一次调整。",
+      "effective_date_too_early": "生效日期不能早于上一次调整（{date}）。",
       "root_node": "集团节点不能移动或停用。",
       "invalid_role": "管理员只能设在集团节点上。",
       "invalid_reports_to": "汇报对象无效。",
       "invalid_user": "该成员不存在或已停用。",
-      "node_inactive": "该节点已停用。"
+      "node_inactive": "该节点已停用。",
+      "parent_not_in_effect": "上级节点自 {date} 起才生效，生效日期不能早于这一天。如需更早，请先把上级节点的生效日期提前。",
+      "parent_inactive": "上级节点已停用。",
+      "node_not_in_effect": "该节点自 {date} 起才生效，生效日期不能早于这一天。"
     }
   }
 }

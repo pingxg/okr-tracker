@@ -105,8 +105,11 @@ watch(
           <dd>{{ typeLabel(node.type) }}</dd>
           <dt>{{ $t('org.owner') }}</dt>
           <dd>{{ owner ? owner.user.name || owner.user.email : $t('org.none') }}</dd>
-          <dt>{{ $t('org.effective') }}</dt>
-          <dd>{{ dateLong(new Date(`${node.validFrom}T00:00:00`)) }}</dd>
+          <!-- The group node's start date is technical (always 2000-01-01). -->
+          <template v-if="node.parentId">
+            <dt>{{ $t('org.effective') }}</dt>
+            <dd>{{ dateLong(new Date(`${node.validFrom}T00:00:00`)) }}</dd>
+          </template>
         </dl>
       </section>
 

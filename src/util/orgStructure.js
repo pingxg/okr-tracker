@@ -1,6 +1,7 @@
 /**
  * Helpers for the organisation structure from API v1 (GET /org/tree).
  */
+import { dateLong } from './format';
 
 /** A node's name in the current language, falling back to the other one. */
 export function nodeName(node, locale) {
@@ -72,11 +73,17 @@ export const nodeIcon = (type) =>
     team: 'house-heart',
   }[type] || 'district');
 
-/** Translated message for an API v1 error. */
+/**
+ * Translated message for an API v1 error. Dates the API sends back (when a
+ * parent or node starts, the last change) are shown as {date}.
+ */
 export function orgErrorMessage(error, i18n) {
   const key = `org.errors.${error?.code}`;
   if (error?.code && i18n.te(key)) {
-    return i18n.t(key);
+    const details = error.details && !Array.isArray(error.details) ? error.details : {};
+    const iso = details.parentFrom || details.nodeFrom || details.from;
+    const date = iso ? dateLong(new Date(`${iso}T00:00:00`)) : '';
+    return i18n.t(key, { date });
   }
   return i18n.t(error?.status === 403 ? 'org.errors.forbidden' : 'toaster.error.save');
 }

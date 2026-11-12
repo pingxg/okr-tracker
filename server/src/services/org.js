@@ -16,6 +16,12 @@ import { getNodeTypes } from './settings.js';
 
 const ROOT_TYPE = 'group';
 
+/**
+ * The group (root) node exists from this date, so the existing structure can
+ * be entered with the dates on which companies and teams really started.
+ */
+export const GROUP_SINCE = '2000-01-01';
+
 // ---------------------------------------------------------------------------
 // Row mapping
 
@@ -244,19 +250,41 @@ function assertName({ nameZh, nameEn }) {
 
 const clean = (s) => (typeof s === 'string' && s.trim() ? s.trim() : null);
 
+/**
+ * The parent must be in effect on `on`. When it is not, say why: it starts
+ * later (details.parentFrom) or it has been deactivated.
+ */
+async function assertParentOn(parentId, on, client) {
+  if (await versionOn(parentId, on, client)) {
+    return;
+  }
+  const {
+    rows: [span],
+  } = await db(client).query(
+    `SELECT min(valid_from) AS first_from, bool_or(valid_to IS NULL) AS open
+     FROM org_node_version WHERE node_id = $1`,
+    [parentId]
+  );
+  if (!span || !span.first_from) {
+    throw badRequest('invalid_parent', 'The parent node does not exist');
+  }
+  if (on < span.first_from) {
+    throw badRequest(
+      'parent_not_in_effect',
+      `The parent node is in effect from ${span.first_from}`,
+      { parentFrom: span.first_from }
+    );
+  }
+  throw badRequest('parent_inactive', 'The parent node has been deactivated');
+}
+
 /** POST /org/nodes */
 export async function createNode(ctx, input, client) {
   const on = effectiveDate(input.effectiveDate);
   assertName(input);
   await assertNodeType(input.type, client);
 
-  const parent = await versionOn(input.parentId, on, client);
-  if (!parent) {
-    throw badRequest(
-      'invalid_parent',
-      'The parent node does not exist on the effective date'
-    );
-  }
+  await assertParentOn(input.parentId, on, client);
   if (!access.canCreateNode(ctx.actor, await policyTree(client), input.parentId)) {
     throw forbidden();
   }
@@ -305,6 +333,11 @@ async function descendantsOn(nodeId, date, client) {
 /**
  * PATCH /org/nodes/{id}: rename, change type, move (parentId) or deactivate
  * (active: false), effective on `effectiveDate` (default today).
+ *
+ * An effective date before the node's start moves its start earlier, as long
+ * as the node has not been changed since it was created (one version) and
+ * the parent already existed then. This is how existing structure is entered
+ * with the dates it really started.
  */
 export async function updateNode(ctx, nodeId, input, client) {
   const on = effectiveDate(input.effectiveDate);
@@ -315,16 +348,27 @@ export async function updateNode(ctx, nodeId, input, client) {
   if (latest.valid_to !== null) {
     throw badRequest('node_inactive', 'The node has been deactivated');
   }
-  if (on < latest.valid_from) {
-    throw badRequest(
-      'effective_date_too_early',
-      `Changes must take effect on or after ${latest.valid_from}`
-    );
-  }
 
   const isRoot = latest.parent_id === null;
   const deactivate = input.active === false;
   const moving = input.parentId !== undefined && input.parentId !== latest.parent_id;
+
+  const backdating = on < latest.valid_from;
+  if (backdating) {
+    const {
+      rows: [{ versions }],
+    } = await client.query(
+      'SELECT count(*)::int AS versions FROM org_node_version WHERE node_id = $1',
+      [nodeId]
+    );
+    if (versions > 1 || deactivate) {
+      throw badRequest(
+        'effective_date_too_early',
+        `Changes must take effect on or after ${latest.valid_from}`,
+        { from: latest.valid_from }
+      );
+    }
+  }
 
   if (isRoot && (deactivate || moving)) {
     throw badRequest('root_node', 'The group node cannot be moved or deactivated');
@@ -367,7 +411,7 @@ export async function updateNode(ctx, nodeId, input, client) {
   if (input.leadUserId !== undefined && isRoot) {
     throw badRequest('root_node', 'The group is run by its group admins');
   }
-  if (!nodeChanged) {
+  if (!nodeChanged && !backdating) {
     if (input.leadUserId !== undefined) {
       await setNodeLead(ctx, nodeId, latest.type, input.leadUserId, on, client);
     }
@@ -379,20 +423,25 @@ export async function updateNode(ctx, nodeId, input, client) {
     }
     await assertNodeType(input.type, client);
   }
-  if (moving) {
-    if (!(await versionOn(input.parentId, on, client))) {
-      throw badRequest(
-        'invalid_parent',
-        'The new parent does not exist on the effective date'
-      );
-    }
-    if ((await descendantsOn(nodeId, on, client)).includes(input.parentId)) {
-      throw badRequest('invalid_parent', 'A node cannot be moved below itself');
-    }
+  if (moving || (backdating && !isRoot)) {
+    await assertParentOn(next.parentId, on, client);
+  }
+  if (moving && (await descendantsOn(nodeId, on, client)).includes(input.parentId)) {
+    throw badRequest('invalid_parent', 'A node cannot be moved below itself');
   }
 
   let row;
-  if (on === latest.valid_from) {
+  if (backdating) {
+    // The node started earlier than recorded: move its start, no new history row.
+    ({
+      rows: [row],
+    } = await client.query(
+      `UPDATE org_node_version
+       SET valid_from = $2, parent_id = $3, type = $4, name_zh = $5, name_en = $6
+       WHERE id = $1 RETURNING *`,
+      [latest.id, on, next.parentId, next.type, next.nameZh, next.nameEn]
+    ));
+  } else if (on === latest.valid_from) {
     // Correction on the day the version started: no new history row.
     ({
       rows: [row],
@@ -580,6 +629,19 @@ async function clearOtherPrimary(userId, keepId, client) {
 export async function addMembership(ctx, input, client) {
   const on = effectiveDate(input.effectiveDate);
   if (!(await versionOn(input.nodeId, on, client))) {
+    const {
+      rows: [span],
+    } = await client.query(
+      'SELECT min(valid_from) AS first_from FROM org_node_version WHERE node_id = $1',
+      [input.nodeId]
+    );
+    if (span?.first_from && on < span.first_from) {
+      throw badRequest(
+        'node_not_in_effect',
+        `The node is in effect from ${span.first_from}`,
+        { nodeFrom: span.first_from }
+      );
+    }
     throw badRequest('invalid_node', 'The node does not exist on the effective date');
   }
   if (
@@ -658,7 +720,8 @@ export async function updateMembership(ctx, membershipId, input, client) {
   if (on < current.valid_from) {
     throw badRequest(
       'effective_date_too_early',
-      `Changes must take effect on or after ${current.valid_from}`
+      `Changes must take effect on or after ${current.valid_from}`,
+      { from: current.valid_from }
     );
   }
 
@@ -795,7 +858,7 @@ export async function bootstrapGroupAdmin(ctx, user, client) {
     } = await client.query(
       `INSERT INTO org_node_version (node_id, parent_id, type, name_zh, name_en, valid_from, created_by)
        VALUES ($1, NULL, $2, '集团', 'Group', $3, $4) RETURNING *`,
-      [rootId, ROOT_TYPE, on, user.id]
+      [rootId, ROOT_TYPE, GROUP_SINCE, user.id]
     );
     await recordRevision(client, {
       table: 'org_node',
