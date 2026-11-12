@@ -1,6 +1,6 @@
 module.exports = {
   verbose: true,
-  roots: ['src', 'tests', 'functions'],
+  roots: ['src', 'tests'],
   moduleFileExtensions: ['js', 'vue'],
   transform: {
     '^.+\\.(ts|tsx|js|jsx)$': 'babel-jest',

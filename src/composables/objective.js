@@ -1,8 +1,8 @@
 import { computed, toRef } from 'vue';
 import { storeToRefs } from 'pinia';
-import { globalFirestoreOptions, useCollection, useDocument } from 'vuefire';
-import { doc, collection, query, where } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { globalFirestoreOptions, useCollection, useDocument } from '@/backend/vuefire';
+import { doc, collection, query, where } from '@/backend/firestore';
+import { db } from '@/config/backend';
 import { uniqueBy } from '@/util';
 import { useAuthStore } from '@/store/auth';
 import { useActiveItemStore } from '@/store/activeItem';

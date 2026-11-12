@@ -1,14 +1,14 @@
 <script setup>
 import { computed, ref, watchEffect } from 'vue';
-import { useCollection } from 'vuefire';
+import { useCollection } from '@/backend/vuefire';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toast-notification';
 import { useI18n } from 'vue-i18n';
-import { collection, doc, orderBy, query, where } from 'firebase/firestore';
+import { collection, doc, orderBy, query, where } from '@/backend/firestore';
 import { useAuthStore } from '@/store/auth';
 import { useActiveItemStore } from '@/store/activeItem';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import ApiClient from '@/db/ApiClient';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
 import '@oslokommune/punkt-elements/dist/pkt-loader.js';

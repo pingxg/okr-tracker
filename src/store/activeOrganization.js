@@ -1,8 +1,8 @@
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
-import { useCollection } from 'vuefire';
-import { doc } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { useCollection } from '@/backend/vuefire';
+import { doc } from '@/backend/firestore';
+import { db } from '@/config/backend';
 import { useActiveItemStore } from '@/store/activeItem';
 import { useTrackerItem } from '@/composables/item';
 import { firestoreEncode } from '@/util/firebaseUtil';

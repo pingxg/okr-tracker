@@ -2,11 +2,11 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { doc } from 'firebase/firestore';
+import { doc } from '@/backend/firestore';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toast-notification';
 import Organization from '@/db/Organization';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import { useAdminStore } from '@/store/admin';
 import { findSlugAndRedirect } from '@/util';
 import '@oslokommune/punkt-elements/dist/pkt-breadcrumbs.js';

@@ -18,6 +18,13 @@ export default defineConfig({
   publicDir: 'public',
   server: {
     port: 8080,
+    // The Node backend (server/) runs on port 3000 in development.
+    proxy: {
+      '/api': {
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:3000',
+        changeOrigin: false,
+      },
+    },
   },
   define: {
     // eslint-disable-next-line prettier/prettier
@@ -42,7 +49,7 @@ export default defineConfig({
     postcss: {},
   },
   build: {
-    outDir: 'docs',
+    outDir: 'dist',
     assetsDir: '',
     sourcemap: true,
   },

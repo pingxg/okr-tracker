@@ -6,7 +6,7 @@ import {
   VueFireAuthOptionsFromAuth,
   globalFirestoreOptions,
   firestoreDefaultConverter,
-} from 'vuefire';
+} from '@/backend/vuefire';
 import VueTippy from 'vue-tippy';
 import { ToastPlugin } from 'vue-toast-notification';
 import '@oslokommune/punkt-elements/dist/pkt-icon.js';
@@ -16,7 +16,8 @@ import i18n from '@/locale/i18n';
 import PageLayout from '@/components/layout/PageLayout.vue';
 import FormSection from '@/components/generic/form/FormSection.vue';
 import FormComponent from '@/components/generic/form/FormComponent.vue';
-import { firebaseApp, auth } from './config/firebaseConfig';
+import { waitForAuth } from '@/backend/auth';
+import { auth } from './config/backend';
 import configureFormValidation from './config/validation';
 
 import 'vue-toast-notification/dist/theme-sugar.css';
@@ -29,19 +30,13 @@ app.use(pinia);
 app.use(router);
 app.use(i18n);
 
-// VueFire
+// Data bindings (VueFire-compatible API backed by the Node server)
 app.use(VueFire, {
-  firebaseApp,
-  modules: [
-    // https://vuefire.vuejs.org/guide/auth.html
-    // https://vuefire.vuejs.org/api/modules/vuefire.html#VueFireAuthOptionsFromAuth
-    VueFireAuthOptionsFromAuth({ auth }),
-  ],
+  modules: [VueFireAuthOptionsFromAuth({ auth })],
 });
 
-// Firestore global options
+// Data binding global options (same semantics as VueFire's)
 // https://vuefire.vuejs.org/guide/global-options.html
-// https://vuefire.vuejs.org/cookbook/migration-v2-v3.html#Default-changes-to-reset-and-wait
 globalFirestoreOptions.maxRefDepth = 1;
 globalFirestoreOptions.wait = true;
 globalFirestoreOptions.reset = true;
@@ -94,6 +89,9 @@ configureFormValidation();
 app.component('PageLayout', PageLayout);
 app.component('FormSection', FormSection);
 app.component('FormComponent', FormComponent);
+
+// Start loading the session right away; the router guard waits for it.
+waitForAuth();
 
 app.mount('#app');
 

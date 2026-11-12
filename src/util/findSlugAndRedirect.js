@@ -1,4 +1,4 @@
-import { getDoc } from 'firebase/firestore';
+import { getDoc } from '@/backend/firestore';
 
 /**
  * Finds the slug for the provided document and redirects to it.

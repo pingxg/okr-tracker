@@ -1,19 +1,12 @@
-import { auth } from '@/config/firebaseConfig';
+// Client for the backend's internal routes (access requests). The browser is
+// authenticated by its session cookie, so no token is needed.
+const BASE_URL = import.meta.env.VITE_HOST_URL || '/api/internal';
 
-const BASE_URL = import.meta.env.VITE_HOST_URL;
-
-const api = async (path, opts) => {
+const api = async (path, opts = {}) => {
   try {
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-
-    if (auth.currentUser) {
-      const token = await auth.currentUser.getIdToken();
-      headers.append('Authorization', `Bearer ${token}`);
-    }
-
     const res = await fetch([BASE_URL, path].join(''), {
-      headers,
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
       ...opts,
       body: opts.body ? JSON.stringify(opts.body) : undefined,
     });

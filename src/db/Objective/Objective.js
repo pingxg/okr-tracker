@@ -1,5 +1,5 @@
-import { collection, doc } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { collection, doc } from '@/backend/firestore';
+import { db } from '@/config/backend';
 import props from './props';
 import {
   validateCreateProps,

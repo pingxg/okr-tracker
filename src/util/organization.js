@@ -1,4 +1,4 @@
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where } from '@/backend/firestore';
 import i18n from '@/locale/i18n';
 
 export function buildOrganizationTree(organization, departments, products) {

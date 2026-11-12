@@ -4,20 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:unit": "NODE_ENV=test jest --testPathIgnorePatterns tests/firebase",
-    "test:unit:firestore": "firebase emulators:exec --only firestore 'jest tests/firebase/firestore.test.js'",
-    "dev": "firebase emulators:start --import=./mock_data & vite",
-    "dev:test": "firebase emulators:start --import=./tests & vite",
+    "test:unit": "NODE_ENV=test jest",
+    "dev": "vite",
+    "dev:server": "npm --prefix server run dev",
     "build": "vite build --mode production",
     "build:test": "vite build --mode staging",
-    "deploy": ". ./.env.production && sed -i -e \"s|<host>|$VITE_API_GATEWAY_URL|g\" public/openapi.yaml && npm run build && sed -i -e \"s|$VITE_API_GATEWAY_URL|<host>|g\" public/openapi.yaml && firebase deploy --project=production",
-    "deploy:test": "npm run build:test && firebase deploy --project=development",
-    "deploy:feature_branch": "npm run build && firebase hosting:channel:deploy --project=production $npm_config_name",
-    "lint": "eslint ./src ./functions ./extras ./tests --ext .js,.vue,.gs",
-    "lint:fix": "eslint ./src ./functions ./extras ./tests --ext .js,.vue,.gs --fix",
+    "start": "npm --prefix server start",
+    "lint": "eslint ./src ./server/src ./server/scripts ./server/test ./common ./tests --ext .js,.vue",
+    "lint:fix": "eslint ./src ./server/src ./server/scripts ./server/test ./common ./tests --ext .js,.vue --fix",
     "lint:style": "stylelint 'src/**/*.scss' 'src/**/*.vue' && prettier --check 'src/**/*.scss'",
-    "lint:style:fix": "stylelint 'src/**/*.scss' 'src/**/*.vue' --fix && prettier --write 'src/**/*.scss'",
-    "export_mock_data": "firebase emulators:export ./mock_data"
+    "lint:style:fix": "stylelint 'src/**/*.scss' 'src/**/*.vue' --fix && prettier --write 'src/**/*.scss'"
   },
   "engines": {
     "node": "22"
@@ -37,7 +33,6 @@
     "date-fns": "^2.29.0",
     "dompurify": "^3.4.17",
     "echarts": "^6.1.0",
-    "firebase": "^12.19.0",
     "flatpickr": "^4.6.13",
     "focus-trap": "^7.6.0",
     "fuse.js": "^7.0.0",
@@ -53,13 +48,11 @@
     "vue-i18n": "^11.4.14",
     "vue-router": "^4.3.3",
     "vue-tippy": "^6.4.4",
-    "vue-toast-notification": "^3.1.2",
-    "vuefire": "^3.2.3"
+    "vue-toast-notification": "^3.1.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "^7.16.5",
-    "@firebase/rules-unit-testing": "^5.0.2",
     "@oslokommune/punkt-css": "^18.9.6",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/compiler-sfc": "^3.4.29",
@@ -70,7 +63,6 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-vue": "^10.11.1",
-    "firebase-tools": "^15.31.0",
     "jest": "^29.7.0",
     "postcss-html": "^2.0.0",
     "prettier": "^2.5.1",

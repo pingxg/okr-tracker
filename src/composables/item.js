@@ -1,7 +1,7 @@
 import { computed, toRef } from 'vue';
-import { useDocument } from 'vuefire';
-import { doc } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { useDocument } from '@/backend/vuefire';
+import { doc } from '@/backend/firestore';
+import { db } from '@/config/backend';
 
 export function useTrackerItem(itemPath) {
   // Item

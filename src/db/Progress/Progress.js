@@ -4,7 +4,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
-} from 'firebase/firestore';
+} from '@/backend/firestore';
 import props from './props';
 import {
   createDocument,

@@ -1,11 +1,11 @@
 import { computed, ref } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
-import { useCollection } from 'vuefire';
+import { useCollection } from '@/backend/vuefire';
 import { useRoute } from 'vue-router';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where } from '@/backend/firestore';
 import { useLocalStorage } from '@vueuse/core';
 import { useActiveObjectiveStore } from '@/store/activeObjective';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import { DEFAULT_OKR_PERIOD, getPeriods } from '@/config/periods';
 import { PeriodSerializer } from '@/util/period';
 import { useActiveItemStore } from '@/store/activeItem';

@@ -2,11 +2,11 @@
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { doc } from 'firebase/firestore';
+import { doc } from '@/backend/firestore';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toast-notification';
 import Product from '@/db/Product';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import { useAuthStore } from '@/store/auth';
 import { useAdminStore } from '@/store/admin';
 import { findSlugAndRedirect } from '@/util';

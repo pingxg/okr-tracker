@@ -1,0 +1,43 @@
+# Render Blueprint (spec §13). Frankfurt region keeps data in the EU.
+# Secrets marked `sync: false` are entered in the Render dashboard.
+# Backups: Render Postgres has point-in-time recovery. For the weekly external
+# copy (spec §13) run `node scripts/backup.js` as a Cron Job once an upload
+# target is chosen.
+databases:
+  - name: okr-db
+    region: frankfurt
+    plan: basic-1gb
+    databaseName: okr
+    user: okr
+    postgresMajorVersion: '16'
+
+services:
+  - type: web
+    name: okr-app
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: okr-db
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PUBLIC_URL
+        sync: false
+      - key: OIDC_ISSUER
+        sync: false
+      - key: OIDC_CLIENT_ID
+        sync: false
+      - key: OIDC_CLIENT_SECRET
+        sync: false
+      - key: INITIAL_ADMIN_EMAIL
+        sync: false
+      - key: AUTO_CREATE_USERS
+        value: 'true'
+

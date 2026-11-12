@@ -1,9 +1,9 @@
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
 import { useI18n } from 'vue-i18n';
-import { useCollection } from 'vuefire';
-import { collection, query, where } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { useCollection } from '@/backend/vuefire';
+import { collection, query, where } from '@/backend/firestore';
+import { db } from '@/config/backend';
 import { setLanguage } from '@/locale/i18n';
 import { useAuthStore } from '@/store/auth';
 

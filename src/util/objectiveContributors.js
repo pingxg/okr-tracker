@@ -1,5 +1,5 @@
-import { doc, collection, query, where, getDoc, getDocs } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { doc, collection, query, where, getDoc, getDocs } from '@/backend/firestore';
+import { db } from '@/config/backend';
 import ObjectiveContributors from '@/db/ObjectiveContributors';
 
 async function getKeyResultOwners(objectiveId) {

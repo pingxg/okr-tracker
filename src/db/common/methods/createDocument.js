@@ -1,4 +1,4 @@
-import { addDoc } from 'firebase/firestore';
+import { addDoc } from '@/backend/firestore';
 import metadata from '../util/metadata';
 
 /**

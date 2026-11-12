@@ -1,8 +1,8 @@
 import { computed, toRef } from 'vue';
 import { storeToRefs } from 'pinia';
-import { firestoreDefaultConverter, useCollection, useDocument } from 'vuefire';
-import { doc, collection, query, where, orderBy } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { firestoreDefaultConverter, useCollection, useDocument } from '@/backend/vuefire';
+import { doc, collection, query, where, orderBy } from '@/backend/firestore';
+import { db } from '@/config/backend';
 import {
   filterDuplicatedProgressValues,
   getCachedKPIProgress,

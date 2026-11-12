@@ -3,9 +3,13 @@ import { defineStore } from 'pinia';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toast-notification';
-import { useCurrentUser } from 'vuefire';
-import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/config/firebaseConfig';
+import { useCurrentUser } from '@/backend/vuefire';
+import {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  authProviders,
+} from '@/backend/auth';
+import { auth } from '@/config/backend';
 import User from '@/db/User';
 import defaultPreferences from '@/db/User/defaultPreferences';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';
@@ -28,10 +32,14 @@ export const useAuthStore = defineStore('auth', () => {
   const user = computed(() => trackerUser.user.value);
   const isLoggedIn = computed(() => Boolean(firbaseUser.value && trackerUser.user.value));
 
+  // Login methods enabled on the server (Microsoft Entra ID, email for dev/test)
   const authenticationProviders = computed(() =>
-    import.meta.env.VITE_LOGIN_PROVIDERS.split('-')
+    Object.entries(authProviders.value)
+      .filter(([, enabled]) => enabled)
+      .map(([provider]) => provider)
   );
-  const authenticationError = ref(null);
+  // The server sends people back to /login?error=… when single sign-on fails.
+  const authenticationError = ref(route.query?.error ? 2 : null);
   const isAuthenticating = ref(false);
 
   const preferences = computed(

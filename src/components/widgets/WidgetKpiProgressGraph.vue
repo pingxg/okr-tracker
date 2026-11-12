@@ -2,7 +2,7 @@
 import { computed, nextTick, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp } from '@/backend/firestore';
 import { max, min } from 'd3-array';
 import { useAuthStore } from '@/store/auth';
 import { useActiveKpiStore } from '@/store/activeKpi';

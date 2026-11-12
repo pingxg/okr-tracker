@@ -1,5 +1,1 @@
-export default (field, included) => [
-  field,
-  'in',
-  included ? [true, false] : [false],
-];
+export default (field, included) => [field, 'in', included ? [true, false] : [false]];

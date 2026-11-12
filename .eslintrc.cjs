@@ -74,4 +74,37 @@ module.exports = {
       },
     },
   },
+  overrides: [
+    {
+      // Code shared between the browser and the Node server lives in common/
+      // and is imported by relative path on purpose.
+      files: ['src/backend/**/*.js', 'server/**/*.js', 'common/**/*.js'],
+      rules: {
+        'import/no-relative-packages': 'off',
+        'max-classes-per-file': 'off',
+        'class-methods-use-this': 'off',
+        'import/prefer-default-export': 'off',
+      },
+    },
+    {
+      files: ['server/**/*.js'],
+      env: { browser: false, node: true },
+      rules: {
+        // `#compat/*` is a Node subpath import declared in server/package.json.
+        'import/no-unresolved': ['error', { ignore: ['^#compat/'] }],
+        // Sequential awaits are intentional (transactions, ordered triggers).
+        'no-await-in-loop': 'off',
+        'no-continue': 'off',
+        // Deprecated in ESLint; `return a || (await b)` is clearer than the alternative.
+        'no-return-await': 'off',
+      },
+    },
+    {
+      // Ported Cloud Functions code: kept as close to the original as possible.
+      files: ['server/src/functions/**/*.js'],
+      rules: {
+        'no-return-await': 'off',
+      },
+    },
+  ],
 };

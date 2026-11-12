@@ -28,3 +28,7 @@ mock/
 !tests/mock
 
 .npmrc
+
+# Server environment and backups
+.env
+server/backups/

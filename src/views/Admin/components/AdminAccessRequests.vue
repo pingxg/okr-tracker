@@ -1,12 +1,12 @@
 <script setup>
 import { ref } from 'vue';
-import { useCollection } from 'vuefire';
-import { collection } from 'firebase/firestore';
+import { useCollection } from '@/backend/vuefire';
+import { collection } from '@/backend/firestore';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toast-notification';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
 import '@oslokommune/punkt-elements/dist/pkt-alert.js';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import api from '@/util/api';
 
 const i18n = useI18n();

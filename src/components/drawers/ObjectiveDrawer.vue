@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
-import { doc, deleteField, getDoc } from 'firebase/firestore';
+import { doc, deleteField, getDoc } from '@/backend/firestore';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toast-notification';
 import { isEqual } from 'date-fns';
@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/auth';
 import { useActiveItemStore } from '@/store/activeItem';
 import { useObjective } from '@/composables/objective';
 import Objective from '@/db/Objective';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import syncObjectiveContributors from '@/util/objectiveContributors';
 import { BtnSave, BtnDelete, BtnCancel } from '@/components/generic/form';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';

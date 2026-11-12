@@ -10,53 +10,56 @@ jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22.x]
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: okr
+          POSTGRES_PASSWORD: okr
+          POSTGRES_DB: okr_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U okr"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
-      - name: Cache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
-        with:
-          path: |
-            ~/cache
-            !~/cache/exclude
-            **/node_modules
-            ~/.cache
-            ~/root/.cache/firebase/emulators
-          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
-      - name: Use Node.js ${{matrix.node-version}}
+      - name: Use Node.js 22
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Use Java
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
-        with:
-          distribution: 'zulu'
-          java-version: '21.x'
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
 
       - name: npm install
         run: |
           npm ci
-          npm --prefix functions ci functions
+          npm --prefix server ci
         env:
           CI: true
 
-      - name: npm lint
+      - name: Lint
         run: |
           npm run lint
           npm run lint:style
 
-      - name: npm test:unit
-        run: |
-          npm run test:unit
-          npm run test:unit:firestore
+      - name: Frontend unit tests
+        run: npm run test:unit
         env:
           CI: true
+
+      - name: Server tests
+        run: npm --prefix server test
+        env:
+          TEST_DATABASE_URL: postgres://okr:okr@localhost:5432/okr_test
+
+      - name: Build
+        run: npm run build

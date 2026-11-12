@@ -1,403 +1,107 @@
-# OKR Tracker
+# OKR Tracker (Node + PostgreSQL edition)
 
-- [OKR Tracker](#okr-tracker)
-  - [Demo](#demo)
-  - [Project requirements](#project-requirements)
-  - [Clone and install](#clone-and-install)
-  - [Set up new instance](#set-up-new-instance)
-    - [Create Firebase project](#create-firebase-project)
-      - [Cloud Functions configuration](#cloud-functions-configuration)
-      - [Enable Google Auth in Firebase](#enable-google-auth-in-firebase)
-    - [Environment variables](#environment-variables)
-    - [Link project](#link-project)
-    - [Run locally](#run-locally)
-  - [Make Firestore ready for production](#make-firestore-ready-for-production)
-    - [Create mock data](#create-mock-data)
-      - [Generate mock data](#generate-mock-data)
-      - [Exporting mock data](#exporting-mock-data)
-      - [Update mock data](#update-mock-data)
-      - [Possible problems](#possible-problems)
-  - [Create Google Cloud API Gateway](#create-google-cloud-api-gateway)
-  - [Build and deploy](#build-and-deploy)
-  - [Lint and fix](#lint-and-fix)
-  - [Import production data from Cloud Firestore to local Firestore](#import-production-data-from-cloud-firestore-to-local-firestore)
-    - [Requirements](#requirements)
-    - [Export production data](#export-production-data)
-  - [Import production data](#import-production-data)
-  - [Automated Backup with Cloud Functions](#automated-backup-with-cloud-functions)
-    - [Requirements for automated backups](#requirements-for-automated-backups)
-    - [Automated Restore with Cloud Functions](#automated-restore-with-cloud-functions)
-  - [Supported providers](#supported-providers)
-    - [Microsoft integration](#microsoft-integration)
-    - [Google integration](#google-integration)
-  - [Common problems](#common-problems)
+A fork of [oslokommune/okr-tracker](https://github.com/oslokommune/okr-tracker) that runs without
+Google Firebase. The Vue frontend is unchanged; the backend is a Node.js server with a PostgreSQL
+database, so the app can be self-hosted anywhere: a single Docker image, `docker compose`, or
+Render.
 
-## Demo
+The original project is © 2020 Oslo kommune, MIT licensed (see [LICENCE](LICENCE)).
 
-If you would like to check out how the application works, you can go to the demo-site and sign in with a test-user
+## What changed in this fork
 
-- Site: https://origo-okr-tracker.web.app
-- User/pass: testuser@okr.com / testuser
+| Before (Firebase) | Now |
+| --- | --- |
+| Firestore, read and written directly by the browser | PostgreSQL, accessed through the Node server (`/api/v1/docs/*`) |
+| `firestore.rules` | `server/src/policy/rules.js` — the same rules, enforced on the server, with tests |
+| Cloud Functions triggers (audit log, slugs, progress roll-up, KPI caches) | Same code in `server/src/functions`, run by the server after each write |
+| Firestore real-time listeners | Postgres `NOTIFY` → server-sent events → the browser refreshes affected data |
+| Firebase Auth (Google / Microsoft popup) | OpenID Connect on the server (Microsoft Entra ID or any OIDC provider), httpOnly session cookie |
+| External API on Cloud Functions + Google API Gateway | Same Express routes mounted at `/api/external` (see `public/openapi.yaml`) |
+| Scheduled Firestore backups | `server/scripts/backup.js` (`pg_dump`) and the database host's point-in-time recovery |
+| Apps Script user sync, Google Sheets integration | Removed; users are created on first SSO login |
 
-## Project requirements
+Phase 1 keeps the original data model: every Firestore document is a row in the `documents`
+table with the same path and fields (see `server/src/db/migrations/001_documents.sql`).
+Reporting views (`okr_objectives`, `okr_key_results`, …) make the data easy to query from BI
+tools. A relational model is planned for a later phase.
 
-- Node.js 22
-- Firebase Blaze plan - Pay as you go
+## Architecture
 
-## Clone and install
+```
+src/                 Vue 3 frontend (unchanged pages and components)
+  backend/           Firestore/VueFire-compatible client for the Node API
+common/docstore/     Value encoding shared by browser and server
+server/
+  src/
+    app.js           Fastify server, mounts the legacy Express apps
+    auth/            OIDC login, sessions, user provisioning
+    policy/          Access rules (port of firestore.rules)
+    store/           Document store on Postgres, queries, triggers
+    compat/          Firebase Admin / Functions stand-ins used by the ported functions
+    functions/       Ported Cloud Functions (audit, slugs, progress, KPI, external API)
+    routes/          Document API and live updates
+  scripts/           seed.js, backup.js
+  test/              node:test suites
+```
 
-Clone repository and run install:
+## Run locally
+
+Requirements: Node.js 22 and PostgreSQL 14+ (or Docker).
+
+### With Docker
 
 ```bash
-npm install && cd ./functions && npm install && cd ..
+docker compose up --build
+docker compose exec app node scripts/seed.js   # optional demo data
 ```
 
-Install Firebase CLI:
+Open http://localhost:3000 and sign in with `admin@example.com` and password `okr-dev`.
+
+### Without Docker
 
 ```bash
-npm install -g firebase-tools
+npm install
+npm --prefix server install
+cp server/.env.example server/.env        # set DATABASE_URL and DEV_LOGIN_PASSWORD
+npm --prefix server run seed              # optional demo data (admin@example.com)
+npm run dev:server                        # API on http://localhost:3000
+npm run dev                               # frontend on http://localhost:8080, proxies /api
 ```
 
-## Set up new instance
+## Sign-in with Microsoft Entra ID
 
-Follow this guide to set up a new clean instance of the OKR-tracker. Please read the whole readme and not sequentially. There are some steps throughout the readme that are important to set up a new instance.
+1. Register an application in Entra ID (single tenant).
+2. Add the redirect URI `<PUBLIC_URL>/api/v1/auth/callback` (type: Web) and create a client secret.
+3. Set `OIDC_ISSUER=https://login.microsoftonline.com/<tenant-id>/v2.0`, `OIDC_CLIENT_ID`,
+   `OIDC_CLIENT_SECRET` and `PUBLIC_URL`.
+4. Set `INITIAL_ADMIN_EMAIL` to the first super admin.
 
-### Create Firebase project
+With `AUTO_CREATE_USERS=true` (default) everyone who can sign in to the tenant gets a user with no
+roles on first login. Set it to `false` to require access requests or the `domainWhitelist`
+collection instead. Any other OpenID Connect provider works the same way.
 
-- Create a [Google Firebase](https://firebase.google.com) project.
-- [Initialize the project](https://firebase.google.com/docs/cli#initialize_a_firebase_project) with Firebase CLI
+`DEV_LOGIN_PASSWORD` enables email + shared password sign-in for development and test
+environments; leave it empty in production.
 
-The Cloud Functions authenticate using the project's default service account,
-so no private key needs to be configured.
+## Deploy to Render
 
-#### Cloud Functions configuration
+`render.yaml` defines a Postgres database and one web service (Docker) in Frankfurt. Create a
+Blueprint from the repository, then fill in `PUBLIC_URL`, the `OIDC_*` variables and
+`INITIAL_ADMIN_EMAIL`. Migrations run automatically on start.
 
-The Cloud Functions read their configuration from a `functions/.env` file
-([read more](https://firebase.google.com/docs/functions/config-env)). Create
-the file with the following content:
-
-```
-BACKUP_STORAGE_BUCKET=<your-storage-bucket-name>
-```
-
-This is the storage bucket used for [automated backups](#automated-backup-with-cloud-functions).
-
-If you deploy to multiple Firebase projects (e.g. a test and a production
-environment), use one `functions/.env.<project-id>` file per project instead.
-The Firebase CLI loads the file matching the currently active project.
-
-#### Enable Google Auth in Firebase
-
-We use Google Auth to authenticate users and this needs to be enabled in the Firebase Console.
-
-**NOTE: This does not apply if you are only running this locally. We support Google and Microsoft as authentications**
-
-- Navigate to your project in the [Firebase console](https://console.firebase.google.com/)
-- Press the **Authentication**-button in the side menu
-- **Sign-in Method**-tab
-- Enable Google Auth
-
-### Environment variables
-
-Get your Firebase SDK snippet from your [Firebase Console](https://console.firebase.google.com/):
-
-- Navigate to **Project settings**
-- Under **Your apps**, find Firebase SDK snippet and press **Config**
-- Copy the following secrets to a `.env.production` file in the root directory.
-- Use also need `.env.local` to run this locally
-
-| Secret                        | Description                                                                                                |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `VITE_API_KEY`                | _from SDK snippet_                                                                                         |
-| `VITE_AUTH_DOMAIN`            | _from SDK snippet_                                                                                         |
-| `VITE_DATABASE_URL`           | _from SDK snippet_                                                                                         |
-| `VITE_PROJECT_ID`             | _from SDK snippet_                                                                                         |
-| `VITE_STORAGE_BUCKET`         | _from SDK snippet_                                                                                         |
-| `VITE_MESSAGING_SENDER_ID`    | _from SDK snippet_                                                                                         |
-| `VITE_APP_ID`                 | _from SDK snippet_                                                                                         |
-| `VITE_I18N_LOCALE`            | `nb-NO OR en-US`                                                                                           |
-| `VITE_REGION`                 | `europe-west2`                                                                                             |
-| `VITE_LOGIN_PROVIDERS`        | login providers allowed separated with hyphen - only implemented google, email. Ex: `google-email`         |
-| `VITE_HOST_URL`               | URL which points to cloud functions that are set up as API CRUD endpoints                                  |
-| `VITE_MICROSOFT_TENANT_ID`    | To limit the authentication to a certain TENANT, other wise everyone with a Microsoft account could log in |
-| `VITE_ORGANIZATION`           | Name of the organization                                                                                   |
-
-### Link project
+## Tests
 
 ```bash
-firebase use --add
+npm run lint
+npm run test:unit                                    # frontend (Jest)
+TEST_DATABASE_URL=postgres://… npm --prefix server test   # server (node:test)
 ```
 
-### Run locally
+Server tests that need a database are skipped when `TEST_DATABASE_URL` is not set.
 
-The local development environment uses [Firebase Emulator Suite](https://firebase.google.com/docs/emulator-suite) for Firestore and Cloud Functions. There is no need to do anything, only run the development script and everything is set up with a local user through Google auth.
+## Known limitations
 
-Start Firebase emulators, import mock data and run the development server:
-
-```bash
-npm run dev
-```
-
-## Make Firestore ready for production
-
-If you want to deploy to production or staging, you need to create multiple collections manually. Go to the Firestore Database in the [Firebase Cloud Console](https://console.firebase.google.com/)
-
-- audit
-- departments
-- keyResults
-- kpis
-- objectives
-- organizations
-- periods
-- products
-- requestAccess
-- slugs
-- users
-- domainWhitelist (optional)
-
-The collection `users` needs one document with the first user. Create a document and add the following fields:
-
-```json
-{
-  "id": "<email the user is signing in with",
-  "email": "<email the user is signing in with",
-  "superAdmin": true,
-  "widgets": {
-    "itemHome": {
-      "children": true,
-      "missionStatement": true,
-      "progression": true,
-      "team": true
-    },
-    "keyResultHome": {
-      "details": true,
-      "notes": true,
-      "weights": true
-    },
-    "objectiveHome": {
-      "details": false,
-      "progression": true,
-      "weights": true
-    }
-  }
-}
-```
-
-### Create mock data
-
-#### Generate mock data
-
-After successfully logging in to the OKR Tracker, navigate to the [Admin panel](http://localhost:8080/admin). Here you can create new organisations, departments and products to use as your mock data. On each object you can also create periods, objectives, key results and KPIs.
-
-#### Exporting mock data
-
-To export your mock data run the following command:
-
-```bash
-firebase emulators:export ./mock_data
-```
-
-#### Update mock data
-
-To update existing mock data, simply run the export command above and confirm overwrite existing export.
-
-#### Possible problems
-
-Firebase now exports storage emulator as well, even if you don't use it. These new folders are not checked into git because they are empty and git does not add empty folders. If you are a user that has problems running the mock data, you will need to add two folders to the `/mock_data/storage_export` folder. These are `blobs` and `metadata`.
-
-## Create Google Cloud API Gateway
-
-It is possible to set up open API end points for users outside of the OKR-tracker frontend to update progress of Key Results and KPI's. To do so, you only need to deploy all the functions as usual, and then give the users the Cloud Function URL, but we do not recommend to call the Cloud Function directly. The better approach would be to set up a Google Cloud API Gateway and then reroute all the calls to the right Cloud Function.
-
-We have set up an OpenAPI specification which you can check out [here](./public/openapi.yaml).
-
-You can read more about on how to set up an API Gateway [here](https://cloud.google.com/api-gateway/docs/quickstart).
-
-The TL;DR is:
-
-- Enable [required services](https://cloud.google.com/api-gateway/docs/quickstart#enabling_required_services)
-- Create an API
-- Create a new service account which has the correct access rights - we use the roles `APIGateway Admin` dsds `Cloud Functions Invoker`
-- Create an API config
-- Create a gateway
-
-After an API Gateway has been set up, we have closed the gateway with an API Key, which means that you would need to create an API Key through the Google Cloud Console
-
-If there are any questions regarding this, do not hesitate to get in contact with us and we will gladly help (i.e. create an issue)
-
-## Build and deploy
-
-Build and deploy to production:
-
-```bash
-npm run deploy
-```
-
-### Using GitHub Actions
-
-To configure automatic deploy to Firebase Hosting on merge to `main` (triggered as part of the `pipeline.yml` workflow), add the following secrets to your GitHub repository:
-
-- `ENV_FILE_PROD`: Contains a dumped copy of the production dotenv file.
-- `FIREBASE_PROJECT_ID_PROD`: The Firebase Project ID.
-- `FIREBASE_SERVICE_ACCOUNT_PROD`: Exported JSON key for a GitHub Actions specific service account created for deploying to Firebase Hosting.
-
-See the [Firebase documentation](https://firebase.google.com/docs/hosting/github-integration) for steps required to create these secrets, either by using the Firebase CLI or [manually](https://github.com/FirebaseExtended/action-hosting-deploy/blob/main/docs/service-account.md).
-
-## Lint and fix
-
-[ESlint](https://eslint.org) (including [Prettier](https://prettier.io/) configured to be executed as a linter rule) and [Stylelint](https://stylelint.io) are used for code formatting and linting. The style scripts also run Prettier on the SCSS files, which ESLint does not cover. See configuration in the following files:
-
-```
-./.eslintrc.cjs
-./.prettierrc.cjs
-./.stylelintrc.cjs
-```
-
-```bash
-npm run lint            # Run linter
-npm run lint:fix        # Fix lint issues
-npm run lint:style      # Run style linter and Prettier check on SCSS
-npm run lint:style:fix  # Fix lint issues found in styles
-```
-
-## Import production data from Cloud Firestore to local Firestore
-
-Based on [this tutorial](https://medium.com/firebase-developers/how-to-import-production-data-from-cloud-firestore-to-the-local-emulator-e82ae1c6ed8) with a few differences for our use case.
-
-The newest version of the OKR Tracker uses the Firebase Local Emulator Suite, where you can play and test your data without being afraid of production changes. It is still in the early stages, which means that auth is still handled by the cloud firebase and not locally.
-
-When you start up the local Firestore emulator you can see that the Firestore is completely empty because we don't have any production data. This is an amazing way of working because you can do what ever you want without doing damages, but it's real life data that you most likely want to test and fix.
-
-We are going to show you how you can export your production data to a GCP bucket or use an existing backed up bucket to import into your local Firestore.
-
-### Requirements
-
-```
-- Firebase CLI
-- Google Cloud SDK
-```
-
-How to install [Google Cloud SDK](https://cloud.google.com/sdk/install) and [Firebase CLI](https://firebase.google.com/docs/cli)
-
-### Export production data
-
-Login to Firebase and Google Cloud
-
-```bash
-firebase login
-gcloud auth login
-```
-
-See the list of your projects and connect to the on you'd like to export data from:
-
-```bash
-firebase projects:list
-firebase use <your project id>
-
-gcloud projects list
-gcloud config set project <your project id>
-```
-
-For the sake of this how to, we'll be using `okr-tracker-production` (production) for gcloud, and `origo-okr-tracker` (development) for the Firebase. The reason is that we use auth from our development Firebase instance, and not from the production instance.
-
-If you don't already have automated backups of your production data, we will need to export the production data to a backup on GCP:
-
-```bash
-gcloud firestore export gs://okr-tracker-production.appspot.com/<backup-folder-name>
-```
-
-Now copy the new folder to your local machine, we are going to do this from our functions folder:
-
-```bash
-cd functions
-gcloud storage cp -r gs://okr-tracker-production.appspot.com/<backup-folder-name> .
-```
-
-If you already have automated backups of your production data, you don't need to export the production data, only import it. For this application our backup folder is not part of the Firebase storage bucket:
-
-```bash
-gcloud storage cp -r gs://okr-tracker-backup/<YYYY-MM-DD> .
-```
-
-## Import production data
-
-To import the production data into your local Firebase emulator, you will need a metadata-file on the root folder, named `firebase-export-metadata.json`:
-
-```json
-{
-  "version": "8.6.0",
-  "firestore": {
-    "version": "1.11.5",
-    "path": "functions/<backup-folder-name>",
-    "metadata_file": "functions/<backup-folder-name>/<backup-folder-name>.overall_export_metadata"
-  }
-}
-```
-
-Start your local Firebase emulator suite with the imported data. Firebase will read the metadata-json file automatically.
-
-```bash
-firebase emulators:start --import=./
-```
-
-## Automated Backup with Cloud Functions
-
-We use cloud functions to backup our database every night and only keep backup of the last 14 days. If a backup is older than 14 days it gets automatically and permanently deleted from the storage bucket.
-
-### Requirements for automated backups
-
-- Firebase Blaze plan
-- Set IAM Permission
-- Manually create a storage bucket
-- Cloud function
-
-TLDR:
-
-- Navigate to **Google Cloud Console** and choose your project
-- Navigate to IAM & Admin - Your App Engine Service account needs the **Cloud Datastore Import Export Admin** role
-- Navigate to **Storage** – Create a storage bucket – Give it a rule to delete storage that is >14 days old
-- Set `BACKUP_STORAGE_BUCKET=<your-storage-bucket-name>` in `functions/.env`
-
-### Automated Restore with Cloud Functions
-
-This is called automated restore but we still need to manually trigger a cloud function that does the restore from the Google Cloud Console
-
-TLDR:
-
-- From your Google Cloud Console navigate to **PubSub**
-- Create a topic and name it 'restore-backup'
-- Trigger the topic by publishing a message and the restore will be triggered
-
-Gif of the process:
-
-![Gif of the process src: thecloudfunction-blog](./documentation/recovery.gif)
-
-Src/Citation: [The cloud function blog](https://thecloudfunction.com/blog/firebase-cloud-functions-recovery-backups/)
-
-## Supported providers
-
-OKR-tracker supports for the time being only four login providers: Microsoft, Google, email/pass. If you are looking for other providers that firebase support, we would love for you to open up a PR with the needed changes.
-
-### Microsoft integration
-
-For the Microsoft-integration a TENANT must be specified as the environment-variable VITE_MICROSOFT_TENANT_ID.
-
-### Google integration
-
-Anyone with a google-account can login. To limit domain you have to implement this somehwhere, e.g. in `set_user.js` - e.g. `if (!user.email.lowerCase().endsWith('oslo.kommune.no')) rejectAccess();`
-
-## Common problems
-
-If there are some problems running the project locally, or you get an infinite spinner: inspect the console in the browser, your terminal or `firebase-debug.log` file for error messages. Some common messages when firing up the project for the first time:
-
-1. "No such file or directory, scandir storage_export/metadata"
-   1. You need to create two directories under `mock_data/storage_export` - `blobs` and `metadata`
-2. Missing permissions required for functions deploy. You must have permission iam.serviceAccounts.ActAs on service account
-   1. Open the [Google Cloud Console](https://console.cloud.google.com/) (check that you are in the correct project).
-   2. Go to IAM & Admin -> Service Accounts
-   3. Find the service account and click on it
-   4. Click on the "Permissions" panel, then click `Grant Access`
-   5. Add your IAM member email address. For the role, select Service Accounts -> Service Account User
-   6. Click Save
-3. Automated backups fail with an invalid bucket
-   1. Set `BACKUP_STORAGE_BUCKET` in `functions/.env`. Please read the readme again
+- Icons are still loaded from Oslo kommune's Punkt CDN; they go away when the UI is replaced.
+- Existing Firestore data needs an export/import tool, which is not part of this phase.
+- Live updates refresh data shortly after a change instead of Firestore's optimistic local updates.
+- The integrations page still mentions an `x-api-key` header; the external API no longer needs it.

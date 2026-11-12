@@ -6,7 +6,7 @@ import { useHead } from '@unhead/vue';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
 import '@oslokommune/punkt-elements/dist/pkt-loader.js';
 import '@oslokommune/punkt-elements/dist/pkt-alert.js';
-import { loginProviderGoogle, loginProviderMS } from '@/config/firebaseConfig';
+import { loginProviderGoogle, loginProviderMS } from '@/config/backend';
 import { useAuthStore } from '@/store/auth';
 import { BtnSave } from '@/components/generic/form';
 import BuildingsGraphic from '@/components/graphics/BuildingsGraphic.vue';

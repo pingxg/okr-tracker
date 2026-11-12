@@ -1,5 +1,4 @@
-import { DocumentReference } from 'firebase/firestore';
-import 'firebase/compat/firestore';
+import { DocumentReference } from '@/backend/firestore';
 
 /* eslint-disable valid-typeof */
 export default function validateCreateProps(props, data) {

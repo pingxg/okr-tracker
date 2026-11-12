@@ -1,0 +1,43 @@
+# Local or self-hosted run without any cloud account:
+#
+#   docker compose up --build
+#   docker compose exec app node scripts/seed.js     # optional demo data
+#
+# Then open http://localhost:3000 and sign in with admin@example.com and the
+# DEV_LOGIN_PASSWORD below. For Microsoft sign-in set the OIDC_* variables.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: okr
+      POSTGRES_PASSWORD: okr
+      POSTGRES_DB: okr
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U okr']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_URL: postgres://okr:okr@db:5432/okr
+      PUBLIC_URL: http://localhost:3000
+      SESSION_SECRET: local-docker-session-secret-change-me
+      NODE_ENV: production
+      DEV_LOGIN_PASSWORD: okr-dev
+      INITIAL_ADMIN_EMAIL: admin@example.com
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+
+volumes:
+  pgdata:

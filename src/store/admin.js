@@ -1,9 +1,9 @@
 import { computed } from 'vue';
 import { defineStore } from 'pinia';
-import { useCollection } from 'vuefire';
-import { collection, orderBy, query } from 'firebase/firestore';
+import { useCollection } from '@/backend/vuefire';
+import { collection, orderBy, query } from '@/backend/firestore';
 import { useI18n } from 'vue-i18n';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import { useAuthStore } from '@/store/auth';
 
 export const useAdminStore = defineStore('admin', () => {

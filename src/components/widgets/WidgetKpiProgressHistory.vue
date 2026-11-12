@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useCollection } from 'vuefire';
+import { useCollection } from '@/backend/vuefire';
 import { useI18n } from 'vue-i18n';
 import { computedAsync, useLocalStorage } from '@vueuse/core';
 import { csvFormatBody, csvFormatRow } from 'd3-dsv';
@@ -11,11 +11,11 @@ import {
   orderBy,
   getDocs,
   getCountFromServer,
-} from 'firebase/firestore';
+} from '@/backend/firestore';
 import { useAuthStore } from '@/store/auth';
 import { useActiveKpiStore } from '@/store/activeKpi';
 import { dateShort } from '@/util';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import {
   filterDuplicatedProgressValues,
   formatKPIValue,

@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
-import { doc } from 'firebase/firestore';
+import { doc } from '@/backend/firestore';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toast-notification';
 import { useAuthStore } from '@/store/auth';
@@ -10,7 +10,7 @@ import { useActiveOrganizationStore } from '@/store/activeOrganization';
 import { useActiveObjectiveStore } from '@/store/activeObjective';
 import { useKeyResult } from '@/composables/keyResult';
 import KeyResult from '@/db/KeyResult';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
 import { BtnSave, BtnDelete, BtnCancel } from '@/components/generic/form';
 import ArchivedRestore from '@/components/ArchivedRestore.vue';

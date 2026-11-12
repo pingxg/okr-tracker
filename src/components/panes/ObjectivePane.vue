@@ -1,8 +1,8 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { doc, writeBatch } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { doc, writeBatch } from '@/backend/firestore';
+import { db } from '@/config/backend';
 import metadata from '@/db/common/util/metadata';
 import { useAuthStore } from '@/store/auth';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';

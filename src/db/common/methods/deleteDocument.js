@@ -1,4 +1,4 @@
-import { deleteDoc } from 'firebase/firestore';
+import { deleteDoc } from '@/backend/firestore';
 import metadata from '../util/metadata';
 
 /**

@@ -1,10 +1,10 @@
 import { computed } from 'vue';
 import { defineStore } from 'pinia';
-import { useCollection } from 'vuefire';
+import { useCollection } from '@/backend/vuefire';
 import { useRoute } from 'vue-router';
-import { collection, doc, query, where } from 'firebase/firestore';
+import { collection, doc, query, where } from '@/backend/firestore';
 import { useLocalStorage } from '@vueuse/core';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import { DEFAULT_KPI_PERIOD, getPeriods } from '@/config/periods';
 import { PeriodSerializer } from '@/util/period';
 import { useActiveItemStore } from '@/store/activeItem';

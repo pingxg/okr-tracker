@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, START_LOCATION } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { getCurrentUser } from 'vuefire';
+import { getCurrentUser } from '@/backend/vuefire';
 import { useTrackerStore } from '@/store/tracker';
 import { useAuthStore } from '@/store/auth';
 import Admin from '@/views/Admin/Admin.vue';

@@ -1,7 +1,7 @@
 import { computed, toRef } from 'vue';
-import { useCollection, useDocument } from 'vuefire';
-import { collection, query, where, doc } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { useCollection, useDocument } from '@/backend/vuefire';
+import { collection, query, where, doc } from '@/backend/firestore';
+import { db } from '@/config/backend';
 
 export function useTrackerUser(userId) {
   // User

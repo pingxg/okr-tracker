@@ -1,10 +1,10 @@
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
-import { useCollection, useDocument } from 'vuefire';
+import { useCollection, useDocument } from '@/backend/vuefire';
 import { useRoute, useRouter } from 'vue-router';
-import { doc, getDoc, collection, query, where } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where } from '@/backend/firestore';
 import { firestoreEncode } from '@/util/firebaseUtil';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import { useTrackerItem } from '@/composables/item';
 
 export const useActiveItemStore = defineStore('activeItem', () => {

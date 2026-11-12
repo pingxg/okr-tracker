@@ -1,5 +1,4 @@
-import { deleteField, DocumentReference } from 'firebase/firestore';
-import 'firebase/compat/firestore';
+import { deleteField, DocumentReference } from '@/backend/firestore';
 
 /* eslint-disable valid-typeof */
 export default function validateUpdateProps(props, data) {

@@ -1,5 +1,12 @@
-import { collection, deleteDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import {
+  collection,
+  deleteDoc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from '@/backend/firestore';
+import { db } from '@/config/backend';
 import props from './props';
 import { createDocument, validateCreateProps } from '../common';
 

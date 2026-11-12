@@ -6,8 +6,8 @@ import {
   getDoc,
   getDocs,
   serverTimestamp,
-} from 'firebase/firestore';
-import { db, auth } from '@/config/firebaseConfig';
+} from '@/backend/firestore';
+import { db, auth } from '@/config/backend';
 import props from './props';
 import { validateCreateProps } from '../../common';
 import {

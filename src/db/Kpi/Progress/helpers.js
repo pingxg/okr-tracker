@@ -10,9 +10,9 @@ import {
   updateDoc,
   where,
   writeBatch,
-} from 'firebase/firestore';
+} from '@/backend/firestore';
 import { endOfDay, startOfDay } from 'date-fns';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 
 /**
  * Get KPI document reference from ID.

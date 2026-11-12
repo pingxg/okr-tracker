@@ -2,8 +2,8 @@
 import { computed, nextTick, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import html2canvas from 'html2canvas';
-import { doc, writeBatch } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { doc, writeBatch } from '@/backend/firestore';
+import { db } from '@/config/backend';
 import metadata from '@/db/common/util/metadata';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
 import downloadFile from '@/util/downloadFile';

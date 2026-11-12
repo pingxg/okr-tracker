@@ -1,5 +1,5 @@
-import { doc, serverTimestamp } from 'firebase/firestore';
-import { db, auth } from '@/config/firebaseConfig';
+import { doc, serverTimestamp } from '@/backend/firestore';
+import { db, auth } from '@/config/backend';
 
 const created = () => ({
   archived: false,

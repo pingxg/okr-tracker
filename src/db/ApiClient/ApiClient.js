@@ -4,8 +4,8 @@ import {
   deleteDoc,
   serverTimestamp,
   updateDoc,
-} from 'firebase/firestore';
-import { db, auth } from '@/config/firebaseConfig';
+} from '@/backend/firestore';
+import { db, auth } from '@/config/backend';
 import props from './props';
 import {
   validateCreateProps,

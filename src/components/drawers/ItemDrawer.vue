@@ -2,15 +2,15 @@
 import { ref, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
-import { useCollection } from 'vuefire';
+import { useCollection } from '@/backend/vuefire';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toast-notification';
-import { collection, doc } from 'firebase/firestore';
+import { collection, doc } from '@/backend/firestore';
 import { useTrackerStore } from '@/store/tracker';
 import { useActiveItemStore } from '@/store/activeItem';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';
 import { Organization, Department, Product } from '@/db/models';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
 import '@oslokommune/punkt-elements/dist/pkt-alert.js';
 import { BtnSave, BtnDelete } from '@/components/generic/form';

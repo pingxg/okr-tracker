@@ -1,11 +1,11 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { useCollection, useDocument } from 'vuefire';
+import { useCollection, useDocument } from '@/backend/vuefire';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toast-notification';
-import { collection, doc, orderBy, query, where } from 'firebase/firestore';
+import { collection, doc, orderBy, query, where } from '@/backend/firestore';
 import { endOfYear, startOfYear } from 'date-fns';
-import { db } from '@/config/firebaseConfig';
+import { db } from '@/config/backend';
 import Goal from '@/db/Kpi/Goal';
 import { periodDates } from '@/util';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';

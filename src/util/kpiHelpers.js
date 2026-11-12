@@ -1,6 +1,6 @@
 import i18n from '@/locale/i18n';
 import { numberLocale } from '@/util';
-import { where, limit } from 'firebase/firestore';
+import { where, limit } from '@/backend/firestore';
 
 /**
  * Return a list of available KPI data display formats.

@@ -9,8 +9,8 @@ import {
   setDoc,
   updateDoc,
   where,
-} from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+} from '@/backend/firestore';
+import { db } from '@/config/backend';
 import preferences from './defaultPreferences';
 import { updateDocument } from '../common';
 

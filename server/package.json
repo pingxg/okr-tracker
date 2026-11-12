@@ -1,0 +1,39 @@
+{
+  "name": "okr-tracker-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Node backend for okr-tracker: Fastify + PostgreSQL, replaces Firebase",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/index.js",
+    "dev": "node --watch --env-file-if-exists=.env src/index.js",
+    "migrate": "node --env-file-if-exists=.env src/db/migrate.js",
+    "seed": "node --env-file-if-exists=.env scripts/seed.js",
+    "backup": "node --env-file-if-exists=.env scripts/backup.js",
+    "test": "node --test --test-concurrency=1 test/*.test.js"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.5",
+    "@fastify/express": "^4.0.9",
+    "@fastify/static": "^10.1.10",
+    "cors": "^2.8.6",
+    "d3-array": "^3.2.5",
+    "d3-scale": "^4.0.3",
+    "date-fns": "^2.30.0",
+    "express": "^5.3.0",
+    "express-rate-limit": "^6.11.2",
+    "express-validator": "^7.3.2",
+    "fastify": "^5.12.8",
+    "morgan": "^1.12.1",
+    "openid-client": "^6.8.9",
+    "pg": "^8.23.1"
+  },
+  "imports": {
+    "#compat/*": "./src/compat/*",
+    "#store/*": "./src/store/*"
+  }
+}
