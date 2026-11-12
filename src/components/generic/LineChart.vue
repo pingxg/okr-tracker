@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import VueECharts from 'vue-echarts';
-import { use, registerLocale } from 'echarts/core';
+import { use } from 'echarts/core';
 import { LineChart } from 'echarts/charts';
 import {
   LegendComponent,
@@ -14,7 +14,7 @@ import {
 import { SVGRenderer } from 'echarts/renderers';
 import { useI18n } from 'vue-i18n';
 import { dateShort } from '@/util';
-import { getComputedStyleVariable, LOCALE_NO } from '@/util/chart';
+import { getComputedStyleVariable } from '@/util/chart';
 import FadeTransition from '@/components/generic/transitions/FadeTransition.vue';
 
 const i18n = useI18n();
@@ -29,8 +29,6 @@ use([
   TitleComponent,
   TooltipComponent,
 ]);
-
-registerLocale('NO', LOCALE_NO);
 
 const props = defineProps({
   series: {
@@ -69,7 +67,8 @@ const props = defineProps({
 
 const isMounted = ref(false);
 const initOptions = {
-  locale: i18n.locale.value === 'nb-NO' ? 'NO' : 'EN',
+  // ECharts ships with 'EN' and 'ZH' locales built in.
+  locale: i18n.locale.value === 'zh-CN' ? 'ZH' : 'EN',
 };
 
 const gridOptions = computed(() => {
@@ -98,7 +97,7 @@ const boundaryGap = computed(() => {
 
 const options = computed(() => ({
   textStyle: {
-    fontFamily: "'Oslo Sans', arial, sans-serif",
+    fontFamily: getComputedStyle(document.body).fontFamily,
   },
   grid: gridOptions.value,
   aria: {

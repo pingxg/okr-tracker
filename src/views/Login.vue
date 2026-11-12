@@ -13,7 +13,7 @@ import BuildingsGraphic from '@/components/graphics/BuildingsGraphic.vue';
 
 const i18n = useI18n();
 
-useHead({ title: i18n.t('login.login') });
+useHead({ title: () => i18n.t('login.login') });
 
 const authStore = useAuthStore();
 const { isAuthenticating, authenticationProviders, authenticationError } =

@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 import { useKpisStore } from '@/store/kpis';
 import { useOkrsStore } from '@/store/okrs';
 import { getPeriods } from '@/config/periods';
+import { periodDates } from '@/util/format';
 import PeriodSelector from '@/components/period/PeriodSelector.vue';
 import { NavMenu, NavMenuItem, NavMenuText } from '../navbar';
 
@@ -30,9 +31,18 @@ const period = computed({
   },
 });
 
-const periodLabel = computed(() =>
-  period.value ? period.value.label : i18n.t('period.choosePeriod')
-);
+// Labels are stored with the period object, so rebuild them from the key or the
+// dates to follow the current language.
+const periodLabel = computed(() => {
+  const p = period.value;
+  if (!p) {
+    return i18n.t('period.choosePeriod');
+  }
+  if (p.key) {
+    return getPeriods()[p.key]?.label ?? p.label;
+  }
+  return p.startDate && p.endDate ? periodDates(p) : p.label;
+});
 </script>
 
 <template>

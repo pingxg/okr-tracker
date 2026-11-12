@@ -158,7 +158,6 @@
     "KPIsLong": "Measurements for {name}",
     "project": "OKR",
     "loading": "Loading ...",
-    "owner": "City of Oslo",
     "help": "Help",
     "admin": "Admin",
     "superAdmin": "Super admin",
@@ -665,6 +664,6 @@
   },
   "languages": {
     "en-US": "English",
-    "nb-NO": "Norwegian"
+    "zh-CN": "中文"
   }
 }

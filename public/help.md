@@ -1,273 +1,275 @@
-## Innlogging
+## Signing in
 
-### Jeg kan ikke logge inn, hva gjør jeg?
+### I can't sign in, what do I do?
 
-Kun godkjente brukere har adgang til systemet. Er ikke e-postadressen du prøver
-å logge inn med lagt inn som bruker i systemet, vil du ikke ha mulighet til å
-logge inn. Be en systemadministrator om tilgang eller be om tilgang ved å sende
-inn e-postadressen din via [dette skjemaet](/request-access).
+Only approved users have access to the system. If the email address you are
+signing in with has not been added as a user, you won't be able to sign in. Ask
+a system administrator for access, or request access by sending your email
+address through [this form](/request-access).
 
-### … men jeg er allerede lagt inn!
+### … but I have already been added!
 
-Da er det nok noe feil i systemet. Ta kontakt med systemadministrator.
-
----
-
-## Rettigheter til å endre
-
-### Jeg kan ikke legge inn eller endre mål og nøkkelresultater
-
-Du må være medlem av et produkt for å gjøre endringer på produktet. Andre
-registrerte teammedlemmer kan legge deg til produktet dersom du skal ha tilgang.
-
-### … men det er jo ingen medlemmer på teamet!
-
-Kontakt en systemadministrator for å legge deg inn som medlem av et team.
-
-### Legge til teammedlemmer
-
-På produktsiden klikk på «Admin» i toppmenyen, og skriv deretter inn navn eller
-e-postadresse under «Teammedlemmer»-feltet.
-
-Dersom en person du ønsker å legge til ikke eksisterer i listen må en
-systemadministrator legge til brukeren til systemet først.
-
-Kun systemadministratorer og eksisterende teammedlemmer har rettigheter til å
-legge til nye medlemmer.
+Then something is probably wrong in the system. Contact a system administrator.
 
 ---
 
-## Profil
+## Permission to make changes
 
-### Hvordan kan jeg endre visningsnavnet mitt?
+### I can't add or change objectives and key results
 
-Åpne profilmenyen via knappen helt til høyre i toppmenyen, endre feltet «Navn»
-og trykk `Lagre`.
+You must be a member of a product to make changes to it. Other registered team
+members can add you to the product if you should have access.
+
+### … but the team has no members!
+
+Contact a system administrator to be added as a member of a team.
+
+### Adding team members
+
+On the product page, click «Admin» in the top menu, then enter a name or email
+address in the «Team members» field.
+
+If the person you want to add is not in the list, a system administrator must
+add the user to the system first.
+
+Only system administrators and existing team members can add new members.
+
+---
+
+## Profile
+
+### How do I change my display name?
+
+Open the profile menu with the button on the far right of the top menu, change
+the «Name» field and click `Save`.
+
+### How do I change the language?
+
+Open the profile menu, choose a language in the «Language» field and click
+`Save`. The app is available in English and Chinese.
 
 ---
 
 ## Administrator
 
-### Åpne adminpanelet
+### Opening the admin panel
 
-Administratorer har tilgang til adminpanelet. Klikk på brukerprofilknappen helt
-til høyre i toppmenyen og velg «Admin».
+Administrators have access to the admin panel. Click the user profile button on
+the far right of the top menu and choose «Admin».
 
-### Legge til en ny bruker til systemet
+### Adding a new user to the system
 
-Kun systemadministratorer har tilgang til å legge inn nye brukere til
-systemet. Administratorer kan administrere brukere fra [adminpanelet](/admin).
+Only system administrators can add new users to the system. Administrators
+manage users from the [admin panel](/admin).
 
-### Legge til eller fjerne administratortilgang for en bruker
+### Granting or removing admin rights for a user
 
-Administratorer kan legge til eller fjerne admintilganger for brukere fra
-[adminpanelet](/admin).
-
----
-
-## Organisasjoner
-
-Organisasjoner er det overordnede nivået som inneholder
-[produktområder](#produktområder). Organisasjoner kan også ha egne [mål](#mål)
-og [nøkkelresultater](#nøkkelresultater).
-
-### Opprette en ny organisasjon
-
-Administratorer kan opprette nye produktområder fra [adminpanelet](/admin).
-
-- I kolonnen «Organisasjoner», klikk `Ny organisasjon`.
-- Skriv inn navn og oppdragsbeskrivelse.
-- Legg inn medlemmene av organisasjonen.
-- Trykk `Opprett`.
-
-### Arkivere en organisasjon
-
-Administratorer kan arkivere eksisterende organisasjoner fra
-[adminpanelet](/admin). Arkiverte organisasjoner kan gjenopprettes.
-
-- Velg organisasjon fra menyen.
-- Trykk `Slett`.
-
-### Gjenopprette en organisasjon
-
-Arkiverte organisasjoner kan gjenopprettes av systemadministratorer fra
-[adminpanelet](/admin).
-
-- Huk av for «Vis arkiverte objekter» nederst på siden.
-- Velg organisasjonen som skal gjenopprettes.
-- Trykk «Gjenopprett».
-
-### Permanent slette en organisasjon
-
-Dette er ikke mulig å gjennomføre.
-
-### Administrere mål og nøkkelresultater for en organisasjon
-
-Kun administratorer har rettigheter til å opprette, endre og slette _mål_ og
-_nøkkelresultater_ for en organisasjon.
-
-- Naviger til organisasjonssiden (klikk på organisasjonens navn på forsiden).
-- Velg «Admin» i toppmenyen.
-- Følg oppskriftene under [mål](#mål) og [nøkkelresultater](#nøkkelresultater).
+Administrators can grant or remove admin rights for users from the
+[admin panel](/admin).
 
 ---
 
-## Produktområder
+## Organizations
 
-Produktområder inneholder [produkter](#produkter), [mål](#mål) og
-[nøkkelresultater](#nøkkelresultater).
+Organizations are the top level and contain [departments](#departments).
+Organizations can also have their own [objectives](#objectives) and
+[key results](#key-results).
 
-### Opprette et nytt produktområde
+### Creating a new organization
 
-Administratorer kan opprette nye produktområder fra [adminpanelet](/admin).
+Administrators can create new organizations from the [admin panel](/admin).
 
-- I kolonnen «Produktområder», klikk `Nytt produktområde`. Merk at en
-  organisasjon må være opprettet før du kan opprette et produktområde.
-- Skriv inn navn og oppdragsbeskrivelse.
-- Velg hvilken organisasjon det skal tilhøre til og hvilke medlemmer det har.
-- Trykk `Opprett`.
+- In the «Organizations» column, click `Add organization`.
+- Enter a name and mission statement.
+- Add the members of the organization.
+- Click `Create`.
 
-### Arkivere et produktområde
+### Archiving an organization
 
-Administratorer kan arkivere eksisterende produktområder fra
-[adminpanelet](/admin). Arkiverte produktområder kan gjenopprettes.
+Administrators can archive existing organizations from the
+[admin panel](/admin). Archived organizations can be restored.
 
-- Velg produkt fra menyen.
-- Trykk `Slett`.
+- Select the organization in the menu.
+- Click `Delete`.
 
-### Gjenopprette et produktområde
+### Restoring an organization
 
-Arkiverte produktområder kan gjenopprettes av systemadministratorer fra
-[adminpanelet](/admin).
+Archived organizations can be restored by system administrators from the
+[admin panel](/admin).
 
-- Huk av for «Vis arkiverte objekter» nederst på siden.
-- Velg det arkiverte produktområdet som skal gjenopprettes.
-- Trykk «Gjenopprett».
+- Tick «View archived objects» at the bottom of the page.
+- Select the organization to restore.
+- Click `Restore`.
 
----
+### Permanently deleting an organization
 
-## Produkter
+This is not possible.
 
-Produkter er underordnet et [produktområde](#produktområder) og inneholder
-[mål](#mål) og [nøkkelresultater](#nøkkelresultater).
+### Managing objectives and key results for an organization
 
-### Opprette et nytt produkt
+Only administrators can create, change and delete _objectives_ and _key results_
+for an organization.
 
-Administratorer kan opprette nye produkter fra [adminpanelet](/admin).
-
-- I kolonnen «Produkter», klikk `Nytt produkt`. Merk at et produktområde må være
-  opprettet før du kan opprette et produkt.
-- Skriv inn navn og oppdragsbeskrivelse.
-- Velg hvilket produktområde det skal tilhøre til og hvilke medlemmer det har.
-- Trykk `Opprett`.
-
-### Arkivere et produkt
-
-Administratorer kan arkivere eksisterende produkter fra
-[adminpanelet](/admin). Arkiverte produkter kan gjenopprettes.
-
-- Velg produkt fra menyen.
-- Trykk `Slett`.
-
-### Gjenopprette et arkivert produkt
-
-Arkiverte produkter kan gjenopprettes av systemadministratorer fra
-[adminpanelet](/admin).
-
-- Huk av for «Vis arkiverte objekter» nederst på siden.
-- Velg det arkiverte produktet som skal gjenopprettes.
-- Trykk «Gjenopprett».
+- Go to the organization page (click the organization's name on the front page).
+- Choose «Admin» in the top menu.
+- Follow the steps under [objectives](#objectives) and
+  [key results](#key-results).
 
 ---
 
-## Mål
+## Departments
 
-Et _mål_ skal være noe som ditt team ønsker å oppnå. Dette skal ikke være helt
-konkret.
+Departments contain [products](#products), [objectives](#objectives) and
+[key results](#key-results).
 
-### Opprette nytt mål
+### Creating a new department
 
-- Gå til produktet, området eller organisasjonen du ønsker å lage et nytt mål
+Administrators can create new departments from the [admin panel](/admin).
+
+- In the «Departments» column, click `Add department`. An organization must
+  exist before you can create a department.
+- Enter a name and mission statement.
+- Choose the organization it belongs to and its members.
+- Click `Create`.
+
+### Archiving a department
+
+Administrators can archive existing departments from the [admin panel](/admin).
+Archived departments can be restored.
+
+- Select the department in the menu.
+- Click `Delete`.
+
+### Restoring a department
+
+Archived departments can be restored by system administrators from the
+[admin panel](/admin).
+
+- Tick «View archived objects» at the bottom of the page.
+- Select the archived department to restore.
+- Click `Restore`.
+
+---
+
+## Products
+
+Products belong to a [department](#departments) and contain
+[objectives](#objectives) and [key results](#key-results).
+
+### Creating a new product
+
+Administrators can create new products from the [admin panel](/admin).
+
+- In the «Products» column, click `Add product`. A department must exist before
+  you can create a product.
+- Enter a name and mission statement.
+- Choose the department it belongs to and its members.
+- Click `Create`.
+
+### Archiving a product
+
+Administrators can archive existing products from the [admin panel](/admin).
+Archived products can be restored.
+
+- Select the product in the menu.
+- Click `Delete`.
+
+### Restoring an archived product
+
+Archived products can be restored by system administrators from the
+[admin panel](/admin).
+
+- Tick «View archived objects» at the bottom of the page.
+- Select the archived product to restore.
+- Click `Restore`.
+
+---
+
+## Objectives
+
+An _objective_ is something your team wants to achieve. It does not have to be
+completely concrete.
+
+### Creating a new objective
+
+- Go to the product, department or organization you want to create an objective
   for.
-- Trykk på `+ Opprett mål`-knappen øverst til høyre.
-- Skriv inn navn, beskrivelse og ønsket periode.
-- Trykk `Opprett mål`.
+- Click the `+ Objective` button at the top right.
+- Enter a name, description and period.
+- Click `Create objective`.
 
-Nå kan nye nøkkelresultater knyttes til dette målet.
+New key results can now be linked to this objective.
 
-### Hvordan beregnes progresjon?
+### How is progress calculated?
 
-Progresjonen for et mål er gjennomsnittet av progresjonen på de tilhørende
-nøkkelresultatene.
+The progress of an objective is the weighted average of the progress of its key
+results.
 
-### Arkivere et mål
+### Archiving an objective
 
-- Naviger til målet du ønsker å arkivere.
-- Trykk på `Endre mål`-knappen.
-- Trykk på `Slett` nederst i skuffen.
-
----
-
-## Nøkkelresultater
-
-Nøkkelresultater er det du _måler_ for et spesifikt [mål](#mål).
-
-### Opprette nytt nøkkelresultat
-
-- Naviger til målet du ønsker å opprette et nytt nøkkelresultat for.
-- Trykk `+ Opprett nøkkelresultat`.
-- Fyll inn feltene.
-- Trykk `Fortsett` og deretter `Fullfør` når du er ferdig.
-
-### Registrere progresjon for et nøkkelresultat
-
-Kun administratorer og teammedlemmer har rettigheter til å registrere progresjon
-for et nøkkelresultat.
-
-Progresjon registreres via detaljsiden for et nøkkelresultat. Man kan også
-registrere progresjon ved bruk av API-et.
-
-### Slette eller endre progresjon for et nøkkelresultat
-
-Kun administratorer og teammedlemmer har rettigheter til å endre progresjon for
-et nøkkelresultat.
-
-På nøkkelresultatsiden (trykk på et nøkkelresultat for å åpne), kan du slette et
-målepunkt ved å trykke på sletteknappen på høyre side av målepunktet.
-
-På samme side kan et eksisterende målepunkt endres ved å bruke
-redigeringsknappen på høyre side av målepunktet.
-
-### Hvordan beregnes progresjon?
-
-Progresjonen for et nøkkelresultat er prosent av nåværende verdi sammenlignet
-med avstanden mellom start- og målverdiene. Dersom nåværende verdi er lavere enn
-startverdien blir den satt til 0 % og dersom den er passert målverdien blir
-progresjonen satt til 100 %.
-
-### Arkivere et nøkkelresultat
-
-- Naviger til nøkkelresultatet du ønsker å arkivere.
-- Trykk på `Rediger nøkkelresultat`-knappen.
-- Trykk på `Slett` nederst i skuffen.
+- Go to the objective you want to archive.
+- Click the `Change objective` button.
+- Click `Delete` at the bottom of the drawer.
 
 ---
 
-## Målinger
+## Key results
 
-### Legge til ny måling
+Key results are what you _measure_ for a specific [objective](#objectives).
 
-- Naviger til ditt produkt, produktområde eller organisasjon.
-- Gå til «Admin» i toppmenyen.
-- Velg «Målinger».
-- Klikk «Legg til måling».
-- Fyll ut detaljene i skjemaet og klikk «Lagre».
+### Creating a new key result
 
-### Oppdatere måleverdier
+- Go to the objective you want to create a key result for.
+- Click `+ Create key result`.
+- Fill in the fields.
+- Click `Continue`, then `Complete` when you are done.
 
-Måleverdiene kan oppdateres på to ulike måter:
+### Registering progress for a key result
 
-1. Direkte i OKR-trackeren ved å benytte knappen «Legg til målepunkt».
+Only administrators and team members can register progress for a key result.
 
-2. Via API-et. Instruksjoner for dette finner du når du redigerer eller
-   oppretter en ny måling.
+Progress is registered on the key result's detail page. Progress can also be
+registered through the API.
+
+### Deleting or changing progress for a key result
+
+Only administrators and team members can change progress for a key result.
+
+On the key result page (click a key result to open it), you can delete a value
+with the delete button to the right of the value.
+
+On the same page, an existing value can be changed with the edit button to the
+right of the value.
+
+### How is progress calculated?
+
+The progress of a key result is the current value as a percentage of the
+distance between the start and target values. If the current value is below the
+start value, progress is set to 0 %, and if it has passed the target value,
+progress is set to 100 %.
+
+### Archiving a key result
+
+- Go to the key result you want to archive.
+- Click the `Edit key result` button.
+- Click `Delete` at the bottom of the drawer.
+
+---
+
+## Measurements
+
+### Adding a new measurement
+
+- Go to your product, department or organization.
+- Open the «Measurements» tab.
+- Click «Create a measurement».
+- Fill in the form and click «Save».
+
+### Updating measurement values
+
+Measurement values can be updated in two ways:
+
+1. Directly in the OKR-tracker with the «New value» button.
+
+2. Through the API. Instructions are shown when you edit or create a
+   measurement.

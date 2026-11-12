@@ -7,7 +7,7 @@ import 'swagger-ui-dist/swagger-ui.css';
 
 const i18n = useI18n();
 
-useHead({ title: i18n.t('general.api') });
+useHead({ title: () => i18n.t('general.api') });
 
 onMounted(() => {
   SwaggerUIBundle({
