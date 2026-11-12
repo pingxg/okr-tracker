@@ -2,6 +2,8 @@
  * Runtime configuration, read from environment variables.
  * See `server/.env.example` for documentation of each variable.
  */
+import { fileURLToPath } from 'node:url';
+
 const env = process.env;
 
 const bool = (value, fallback = false) =>
@@ -53,7 +55,8 @@ const config = {
 
   // Directory with the built frontend (vite build output). Served as static
   // files with SPA fallback when it exists.
-  staticDir: env.STATIC_DIR || new URL('../../dist', import.meta.url).pathname,
+  // fileURLToPath, not URL.pathname: the latter gives "/C:/..." on Windows.
+  staticDir: env.STATIC_DIR || fileURLToPath(new URL('../../dist', import.meta.url)),
 
   // Run Firestore-trigger equivalents (audit, slugs, progress) after writes.
   hooksEnabled: bool(env.HOOKS_ENABLED, true),
