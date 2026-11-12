@@ -70,10 +70,6 @@ function getItemRoute(slug) {
     </nav>
 
     <div class="site-menu-dropdown__footer pkt-txt-12-medium">
-      <img
-        alt="Oslo kommune logo"
-        src="@oslokommune/punkt-assets/dist/logos/oslologo.svg"
-      />
       <span>v{{ version }}</span>
     </div>
   </aside>
@@ -112,10 +108,6 @@ $-dropdown-max-height: calc(100vh - 3.5rem);
     padding: 1rem;
     margin-top: auto;
     opacity: 0.25;
-
-    img {
-      height: 1.5rem;
-    }
   }
 }
 

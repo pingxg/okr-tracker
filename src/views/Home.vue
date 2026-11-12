@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import { useHead } from '@unhead/vue';
 import { useTrackerStore } from '@/store/tracker';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';
-import BuildingsGraphic from '@/components/graphics/BuildingsGraphic.vue';
 import OrganizationCard from '@/components/Navigation/header/OrganizationCard.vue';
 import ItemLinkCard from '@/components/ItemLinkCard.vue';
 
@@ -104,10 +103,6 @@ function sortByLocale(arr) {
           </div>
         </template>
       </div>
-    </template>
-
-    <template #footer>
-      <BuildingsGraphic class="home-page__graphic" skin="info" />
     </template>
   </PageLayout>
 </template>

@@ -1,0 +1,669 @@
+{
+  "notFound": {
+    "title": "页面不存在",
+    "body": "找不到这个页面。",
+    "linkText": "返回首页",
+    "linkTextAlt": "返回{page}",
+    "objectiveHeading": "找不到目标",
+    "objectiveBody": "这个目标似乎不存在。",
+    "keyResultHeading": "找不到关键结果",
+    "keyResultBody": "这个关键结果似乎不存在。",
+    "measurementHeading": "找不到指标",
+    "measurementBody": "这个指标似乎不存在。"
+  },
+  "kpi": {
+    "currentValue": "当前值",
+    "latestValue": "最新值",
+    "progress": "进度",
+    "value": "数值",
+    "valueCount": "数值个数",
+    "newValue": "新数值",
+    "editValue": "编辑数值",
+    "description": "描述",
+    "format": "格式",
+    "startValue": "显示起始值",
+    "preferredTrend": "趋势",
+    "inPeriod": "（本周期）",
+    "noChange": "无变化",
+    "ofTarget": "，目标为",
+    "noData": "暂无记录的数值",
+    "noDataFiltered": "所选周期内没有数据",
+    "noGraph": "数据不足，无法显示图表",
+    "archived": "该指标已归档，不再显示。",
+    "formats": {
+      "integer": "整数",
+      "percentage": "百分比"
+    },
+    "startValues": {
+      "zero": "零",
+      "min": "最低测量值"
+    },
+    "trendOptions": {
+      "increase": "上升（数值越高越好）",
+      "decrease": "下降（数值越低越好）",
+      "neutral": "无偏好（所有数值同样可取）"
+    },
+    "updateFrequency": {
+      "label": "更新频率",
+      "help": "预期该指标更新进度数据的频率。用于判断指标上一次更新是否在规定间隔内，或是否应视为已过期。",
+      "frequencies": {
+        "annual": "每年",
+        "daily": "每天",
+        "irregular": "不定期",
+        "monthly": "每月",
+        "quarterly": "每季度",
+        "weekly": "每周"
+      }
+    },
+    "types": {
+      "plain": {
+        "label": "指标",
+        "description": "团队或部门希望关注的指标。只在该对象的“指标”页签中显示。"
+      },
+      "keyFigure": {
+        "label": "关键数据",
+        "description": "该指标对团队和/或部门很重要。如果指标属于某个产品，也会作为上级部门的关键数据显示。"
+      },
+      "resultIndicator": {
+        "label": "成果指标",
+        "description": "该指标被视为衡量目标达成情况的重要指标。如果指标属于某个产品，也会作为上级部门的成果指标显示。"
+      }
+    },
+    "help": {
+      "apiHelpTitle": "如何通过 API 自动记录指标？",
+      "apiProgress": "可以通过 API 调用记录新的指标数值，例如使用下面的 curl 命令。详见{apiLink}。",
+      "resultIndicatorWarning": "成果指标代表组织的成效和目标达成情况，创建前应与组织管理层确认。"
+    },
+    "goals": {
+      "goal": "目标值",
+      "goals": "目标值",
+      "new": "新目标值",
+      "set": "设置目标值",
+      "edit": "编辑目标值",
+      "the": "目标值",
+      "help": "指标可以为特定周期设置进度目标值，目标值会与进度曲线一起显示在图表中。",
+      "goalTitle": "{formattedDateRange} 的目标值"
+    }
+  },
+  "fields": {
+    "email": "邮箱",
+    "emails": "邮箱地址",
+    "uid": "唯一 ID",
+    "name": "名称",
+    "missionStatement": "使命",
+    "weight": "权重",
+    "displayName": "显示名称",
+    "period": "周期",
+    "description": "描述",
+    "slug": "URL 标识",
+    "department": "部门",
+    "kpitype": "类型",
+    "unit": "计量单位",
+    "startValue": "起始值",
+    "targetValue": "目标值",
+    "value": "数值",
+    "organization": "组织",
+    "date": "日期",
+    "password": "密码",
+    "comment": "备注",
+    "format": "显示方式",
+    "timestamp": "时间戳",
+    "preferredTrend": "趋势",
+    "updateFrequency": "更新频率",
+    "language": "语言",
+    "kpiType": "类型",
+    "example": "示例"
+  },
+  "validation": {
+    "alpha": "只能包含字母",
+    "alpha_num": "只能包含字母和数字",
+    "alpha_dash": "只能包含字母、数字、短横线和下划线",
+    "alpha_spaces": "只能包含字母和空格",
+    "between": "必须介于 {0} 和 {1} 之间",
+    "confirmed": "两次输入不一致",
+    "digits": "必须是 {0} 位数字",
+    "dimensions": "尺寸必须为 {0} × {1} 像素",
+    "email": "请输入有效的邮箱地址",
+    "excluded": "无效的值",
+    "ext": "无效的文件",
+    "image": "必须是图片",
+    "integer": "必须是整数",
+    "length": "长度必须为 {0}",
+    "max_value": "不能大于 {0}",
+    "max": "不能超过 {0} 个字符",
+    "mimes": "文件类型无效",
+    "min_value": "不能小于 {0}",
+    "min": "至少需要 {0} 个字符",
+    "numeric": "只能包含数字",
+    "number": "请输入有效的数字",
+    "oneOf": "无效的值",
+    "regex": "格式无效",
+    "required_if": "此项为必填",
+    "required": "此项为必填",
+    "size": "必须小于 {0}KB",
+    "double": "请输入有效的小数",
+    "positiveNotZero": "请输入有效的值",
+    "decimal": "必须是小数",
+    "optional": "可选"
+  },
+  "general": {
+    "appName": "OKR-tracker",
+    "edit": "编辑",
+    "general": "常规",
+    "OKRs": "OKR",
+    "OKRsLong": "目标与关键结果",
+    "OKRsLonger": "{name} 的目标与关键结果",
+    "KPI": "指标",
+    "KPIs": "指标",
+    "KPIsLong": "{name} 的指标",
+    "project": "OKR",
+    "loading": "加载中……",
+    "help": "帮助",
+    "admin": "管理",
+    "superAdmin": "超级管理员",
+    "signOut": "退出登录",
+    "createdBy": "创建人",
+    "lastUpdate": "更新于",
+    "details": "详情",
+    "products": "产品",
+    "organizations": "组织",
+    "departments": "部门",
+    "teamMembers": "团队成员",
+    "users": "用户",
+    "home": "首页",
+    "keyResults": "关键结果",
+    "success": "成功",
+    "objective": "目标",
+    "objectiveBy": "{owner} 的目标",
+    "selectObjectivesInPeriod": "选择本周期内的所有目标",
+    "noObjectivesInPeriod": "本周期内没有目标",
+    "keyResult": "关键结果",
+    "period": "周期",
+    "frontPage": "首页",
+    "signIn": "请登录",
+    "orgs": "组织",
+    "api": "API 文档",
+    "integrations": "集成",
+    "resultIndicator": "成果指标",
+    "keyFigures": "关键数据",
+    "otherMeasurements": "其他指标",
+    "value": "数值",
+    "target": "目标值",
+    "selectRange": "选择开始和结束日期",
+    "formErrors": "表单有错误，请修正后再提交。",
+    "displayedAs": "显示为：",
+    "today": "今天",
+    "view": "视图",
+    "step": "第 {step} 步，共 {steps} 步",
+    "or": "或",
+    "shortcuts": "快捷方式",
+    "graph": "图表",
+    "error": "错误",
+    "unknown": "未知",
+    "noResults": "没有找到结果"
+  },
+  "home": {
+    "welcome": "欢迎使用 {appName}！",
+    "organization": "组织",
+    "changeOrganization": "切换组织",
+    "myOrganization": "我的组织"
+  },
+  "about": {
+    "about": "关于",
+    "members": "成员",
+    "aboutOrganization": "关于组织",
+    "aboutDepartment": "关于部门",
+    "aboutProduct": "关于产品",
+    "organizationChildren": "组织下的部门",
+    "departmentChildren": "部门下的团队"
+  },
+  "btn": {
+    "close": "关闭",
+    "save": "保存",
+    "add": "添加",
+    "remove": "移除",
+    "editNotes": "修改备注",
+    "addOrganization": "添加组织",
+    "addProduct": "添加产品",
+    "addDepartment": "添加部门",
+    "acceptRequest": "授予访问权限",
+    "rejectRequest": "删除申请",
+    "deleteUser": "删除用户",
+    "cancel": "取消",
+    "create": "创建",
+    "continue": "继续",
+    "complete": "完成",
+    "back": "返回",
+    "createObjective": "创建目标",
+    "updateObjective": "更新目标",
+    "createKeyResult": "创建关键结果",
+    "createAnotherKeyResult": "再创建一个关键结果",
+    "updateKeyResult": "更新关键结果",
+    "addKeyResult": "添加新的关键结果",
+    "addKeyResults": "添加关键结果",
+    "delete": "删除",
+    "editItem": "修改“{item}”",
+    "download": "下载",
+    "upload": "上传",
+    "minimize": "收起",
+    "expand": "展开",
+    "restore": "恢复",
+    "confirmDelete": "确认删除",
+    "reset": "重置",
+    "showMore": "显示全部",
+    "showLess": "收起",
+    "syncData": "同步数据",
+    "moreDetails": "更多详情",
+    "archiveObjective": "归档目标",
+    "archiveKeyResult": "归档关键结果"
+  },
+  "login": {
+    "login": "登录",
+    "requestAccess": "申请访问",
+    "requestButton": "发送申请",
+    "backToLogin": "返回登录",
+    "microsoft": "使用 Microsoft 登录",
+    "google": "使用 Google 登录",
+    "email": "邮箱",
+    "password": "密码",
+    "loading": "正在登录，请稍候……",
+    "error": {
+      "notRegistered": "你的账号尚未注册。",
+      "providerError": "登录失败。如果问题持续存在，请联系系统管理员。",
+      "wrongPassword": "密码错误。",
+      "userNotFound": "找不到该用户。",
+      "userAbort": "登录已取消，请重试。",
+      "accountExists": "该账号已存在，但使用的是其他登录方式。"
+    },
+    "loginWithUsername": "使用用户名登录"
+  },
+  "toaster": {
+    "welcome": "欢迎，{user}",
+    "add": {
+      "users": "已添加用户 | 已添加 {count} 位用户",
+      "product": "已创建新产品，5 秒后将自动跳转",
+      "objective": "已为 {period} 创建目标",
+      "department": "已创建新部门，5 秒后将自动跳转",
+      "keyResult": "已创建新的关键结果",
+      "period": "已创建新周期",
+      "organization": "已创建新组织，5 秒后将自动跳转",
+      "kpi": "已创建新指标",
+      "progress": "已添加新数值"
+    },
+    "delete": {
+      "user": "已删除用户 {user}",
+      "permanently": "已删除“{name}”",
+      "object": "已归档“{name}”",
+      "progress": "已删除数值"
+    },
+    "update": {
+      "progress": "已更新数值",
+      "profile": "个人资料已更新"
+    },
+    "action": {
+      "regret": "撤销",
+      "copiedToClipboard": "已复制到剪贴板"
+    },
+    "error": {
+      "save": "无法保存更改",
+      "archive": "无法归档{document}",
+      "delete": "无法删除{document}",
+      "restore": "无法恢复{document}",
+      "create": "无法创建{document}",
+      "department": "无法创建部门",
+      "organization": "无法创建组织",
+      "product": "无法创建产品",
+      "users": "无法添加用户 | 无法添加用户",
+      "user": "无法删除用户 {user}",
+      "email": "邮箱地址无效",
+      "kpi": "无法创建指标",
+      "notes": "无法更新备注",
+      "addProgress": "无法添加数值",
+      "deleteProgress": "无法删除数值",
+      "updateProgress": "无法更新数值"
+    },
+    "savedChanges": "更改已保存",
+    "deleted": "已删除",
+    "restored": "已恢复",
+    "request": {
+      "noEmail": "申请失败：缺少邮箱。",
+      "requested": "访问申请已发送",
+      "error": "无法发送申请，请重试。",
+      "accepted": "已添加 {user}",
+      "rejected": "已拒绝 {user} 的访问申请",
+      "userCreated": "用户已创建。",
+      "notFound": "找不到该访问申请",
+      "requestExists": "邮箱 {user} 的访问申请已存在。",
+      "userExists": "邮箱为 {user} 的用户已存在。"
+    }
+  },
+  "keyResult": {
+    "objective": "所属目标",
+    "description": "描述",
+    "startValue": "起始值",
+    "targetValue": "目标值",
+    "progression": "关键结果进度：",
+    "unit": "计量单位",
+    "defaultUnit": "百分比",
+    "newValue": "新数值",
+    "editValue": "编辑数值",
+    "registeredValues": "已记录的数值",
+    "commentPlaceholder": "在这里写备注……",
+    "updateValue": "更新数值",
+    "dateAndTime": "日期和时间",
+    "chooseDate": "选择日期",
+    "belongsTo": "所属目标",
+    "numberOfUpdates": "更新次数",
+    "weight": {
+      "label": "权重",
+      "help": "计算目标的整体进度时，每个关键结果默认权重相同（1）。可以在下方修改数值，为单个关键结果单独设置权重。"
+    },
+    "created": "关键结果已创建！",
+    "updated": "关键结果已更新！",
+    "edit": "编辑关键结果"
+  },
+  "objective": {
+    "period": "周期",
+    "progressionTitle": "目标进度：",
+    "owner": "负责方",
+    "contributors": "参与方",
+    "weight": "权重",
+    "change": "修改目标",
+    "add": "添加目标",
+    "createdBy": "创建人",
+    "editedBy": "修改人",
+    "created": "创建于",
+    "edited": "修改于",
+    "updated": "目标已修改！",
+    "movedWarning": "{activeItem} 目前在这个目标下没有关键结果。目标关闭后，它也会从这条时间线上隐藏。你可以现在添加一个关键结果成为参与方，也可以稍后通过 {ownerLink} 添加。"
+  },
+  "period": {
+    "choosePeriod": "选择周期",
+    "dateRange": "开始和结束日期",
+    "sixmonths": "过去 6 个月",
+    "year": "今年至今",
+    "all": "全部",
+    "thisQuarter": "本季度",
+    "previousQuarter": "上季度"
+  },
+  "workbench": {
+    "selectedObjectives": "已选目标",
+    "progressionTitle": "所选目标的整体进度："
+  },
+  "tooltip": {
+    "changeView": "视图：{view}",
+    "editProgress": "编辑数值",
+    "deleteProgress": "删除数值",
+    "copyToClipboard": "复制到剪贴板"
+  },
+  "admin": {
+    "item": {
+      "change": "编辑 {name}",
+      "updated": "{name} 已更新！",
+      "delete": "删除 {name}",
+      "slugChangeInfo": "修改名称后，它的访问地址可能也会改变。如果地址改变，保存后会自动跳转到新地址。",
+      "redirectInfo": "{count} 秒后将自动跳转。"
+    },
+    "objective": {
+      "new": "新目标",
+      "created": "目标已创建！",
+      "updated": "目标已更新！",
+      "change": "编辑目标",
+      "delete": "删除目标",
+      "useLastPeriod": "使用上次的周期：",
+      "level": {
+        "label": "显示层级",
+        "help": "该目标将显示在 {owner} 的时间线上（默认）。",
+        "helpLift": "该目标将同时显示在 {newOwner} 和 {owner} 的时间线上。只要 {owner} 至少保留一个关键结果，它就会继续显示在 {owner} 的时间线上。\n\n{owner} 的成员将无法再编辑这个目标，只能添加或移除自己的关键结果。",
+        "helpForeign": "该目标显示在 {owner} 以及以下参与方的时间线上：{contributors}。有外部参与方的目标不能修改显示层级。",
+        "liftWarning1": "此更改无法撤销。",
+        "liftWarning2": "由于你不是 {newOwner} 的成员，之后将无法编辑这个目标，但仍可以向其添加关键结果。"
+      }
+    },
+    "keyResult": {
+      "new": "新关键结果",
+      "created": "关键结果已创建！",
+      "updated": "关键结果已更新！",
+      "change": "编辑关键结果",
+      "delete": "删除关键结果",
+      "owner": {
+        "label": "负责团队",
+        "help": "负责跟进这个关键结果的团队。"
+      }
+    },
+    "measurement": {
+      "new": "新指标",
+      "created": "指标已创建！",
+      "updated": "指标已更新！",
+      "change": "编辑指标",
+      "delete": "删除指标"
+    },
+    "department": {
+      "create": "创建新部门",
+      "parentOrganisation": "所属组织",
+      "search": "在 {count} 个部门中搜索"
+    },
+    "organization": {
+      "create": "创建新组织",
+      "search": "在 {count} 个组织中搜索"
+    },
+    "product": {
+      "create": "创建新产品",
+      "parentDepartment": "所属部门",
+      "search": "在 {count} 个产品中搜索"
+    },
+    "objects": {
+      "showArchived": "查看已归档的对象"
+    },
+    "users": {
+      "edit": "修改用户",
+      "image": "头像",
+      "backToUsers": "返回用户列表",
+      "addUsers": "添加用户",
+      "users": "用户",
+      "search": "在 {count} 位用户中搜索",
+      "registerUsersButton": "注册",
+      "registerUsersText": "输入邮箱地址（每行一个）："
+    },
+    "showObjectives": "查看目标",
+    "showPeriods": "查看周期",
+    "showKeyResults": "查看关键结果",
+    "noObjectiveSelected": "选择一个目标以查看关键结果",
+    "noPeriodSelected": "选择一个周期以查看目标"
+  },
+  "keyResultPage": {
+    "change": "更新关键结果",
+    "add": "添加关键结果",
+    "notes": {
+      "empty": "备注仅团队成员可见"
+    },
+    "filter": "筛选"
+  },
+  "help": {
+    "title": "帮助",
+    "toc": "目录"
+  },
+  "view": {
+    "details": "详情",
+    "list": "列表"
+  },
+  "keyResultsPage": {
+    "notes": {
+      "heading": "备注"
+    }
+  },
+  "weight": {
+    "heading": "权重",
+    "keyResultFor": "“{name}”的关键结果",
+    "objectivesFor": "目标："
+  },
+  "accessRequests": {
+    "heading": "访问申请"
+  },
+  "empty": {
+    "noKeyResultProgress": "这个关键结果还没有记录的数值。",
+    "noKPIProgress": "这个指标还没有记录的数值。",
+    "noKPIProgressInPeriod": "这个指标在本周期内没有记录的数值。",
+    "noKeyResults": {
+      "heading": "没有关键结果",
+      "body": "哎呀！没有找到任何关键结果。",
+      "linkText": "创建关键结果"
+    },
+    "noKPIs": {
+      "heading": "没有指标",
+      "body": "哎呀！没有找到任何指标。",
+      "adminBody": "添加指标，展示你们的成果！",
+      "buttonText": "创建指标"
+    },
+    "noObjectives": {
+      "heading": "这里还没有目标！",
+      "body": "这里似乎还没有目标和关键结果……"
+    }
+  },
+  "archived": {
+    "heading": "已归档",
+    "body": {
+      "objective": "该目标已归档，不再显示在目标列表中。",
+      "keyResult": "该关键结果已归档，不再显示在关键结果列表中。",
+      "organization": "该组织已归档，不再显示。",
+      "department": "该部门已归档，不再显示。",
+      "product": "该产品已归档，不再显示。"
+    },
+    "restoreText": "如果还需要，可以随时恢复。"
+  },
+  "widget": {
+    "history": {
+      "title": "历史记录",
+      "value": "数值",
+      "date": "日期",
+      "comment": "备注",
+      "actions": "操作",
+      "time": "时间",
+      "changedBy": "最后编辑人",
+      "showComments": "显示备注",
+      "empty": {
+        "heading": "没有历史记录"
+      },
+      "overwriteWarning": "注意：此更改将覆盖所选日期（{date}）已有的数值：{value}。"
+    }
+  },
+  "user": {
+    "language": "语言",
+    "profile": "个人资料",
+    "myProfile": "我的资料",
+    "superAdmin": "OKR-tracker 管理员",
+    "admin": "组织管理员",
+    "hasSuperAdmin": "是 OKR-tracker 的全站管理员",
+    "hasAdmin": "拥有部分组织的管理权限",
+    "myProducts": "我的归属",
+    "products": "产品",
+    "position": {
+      "groups": {
+        "developers": "开发",
+        "designers": "设计",
+        "teamLead": "团队负责人",
+        "productLead": "产品负责人",
+        "techLead": "技术负责人",
+        "designLead": "设计负责人",
+        "administration": "行政",
+        "members": "团队成员",
+        "productOwner": "产品负责人（PO）",
+        "director": "总监",
+        "others": "成员",
+        "departmentDirector": "部门总监"
+      },
+      "title": "角色",
+      "member": "成员",
+      "frontendDeveloper": "前端开发",
+      "backendDeveloper": "后端开发",
+      "fullStackDeveloper": "全栈开发",
+      "techLead": "技术负责人",
+      "interactionDesigner": "交互设计师",
+      "serviceDesigner": "服务设计师",
+      "contentDesigner": "内容设计师",
+      "graphicDesigner": "平面设计师",
+      "designLead": "设计负责人",
+      "informationArchitect": "信息架构师",
+      "dataScientist": "数据科学家",
+      "teamLead": "团队负责人",
+      "productLead": "产品负责人",
+      "productOwner": "产品负责人（PO）",
+      "businessAnalyst": "业务分析师",
+      "businessDeveloper": "业务拓展",
+      "departmentDirector": "部门总监",
+      "director": "总监",
+      "organizationDeveloper": "组织发展",
+      "principalEngineer": "首席工程师",
+      "legalAdvisor": "法务顾问",
+      "itCustodian": "IT 管理员",
+      "hr": "人力资源与人事管理",
+      "hardwareDeveloper": "硬件开发",
+      "humanResourcesManager": "人力资源经理",
+      "dataEngineer": "数据工程师",
+      "mobileDeveloper": "移动端开发",
+      "securityExpert": "安全专家",
+      "administration": "行政",
+      "contentProducer": "内容制作",
+      "other": "其他",
+      "storyteller": "叙事设计"
+    }
+  },
+  "dashboard": {
+    "problemDescription": "问题描述",
+    "targetAudience": "目标用户",
+    "missionStatement": "使命",
+    "effect": "成效",
+    "noRIs": "该部门还没有成果指标。",
+    "downloadOptions": {
+      "png": "下载图表图片（.png）",
+      "csv": "下载原始数据（.csv）"
+    }
+  },
+  "integration": {
+    "info": "我们的 API 提供了自动更新关键结果和指标的接口。使用 API 前需要先创建 API 客户端。每个客户端会生成唯一的 ID 和密钥，每次调用 API 时都必须以请求头（{clientIdHeader}、{clientSecretHeader}）的形式带上，另外还需要单独的 API 密钥（{apiKeyHeader}）。建议为每个接入 API 的应用单独创建一个客户端，便于管理各个应用和正在使用的密钥。",
+    "clientId": "客户端 ID",
+    "clientSecret": "密钥",
+    "action": {
+      "add": "创建新客户端",
+      "edit": "编辑客户端",
+      "delete": "删除客户端",
+      "rotate": "轮换密钥",
+      "confirmRotate": "确认轮换"
+    },
+    "tag": {
+      "created": "{name} 创建于 {when}",
+      "edited": "{name} 最后编辑于 {when}",
+      "lastRotated": "最后轮换于 {when}",
+      "lastActivity": "最后活动于 {when}",
+      "noActivity": "尚无活动记录"
+    },
+    "empty": {
+      "heading": "没有客户端",
+      "body": "在这里添加一个或多个客户端即可使用我们的 API，轻松实现关键结果和/或指标的自动更新。"
+    },
+    "toast": {
+      "add": "已创建新客户端",
+      "addError": "无法创建新客户端",
+      "update": "客户端已更新",
+      "updateError": "无法更新客户端",
+      "delete": "客户端已删除",
+      "deleteError": "无法删除客户端",
+      "rotate": "密钥已轮换",
+      "rotateError": "无法轮换密钥"
+    },
+    "warning": {
+      "secret": "请复制上面的密钥并妥善保存，它只会显示这一次。保存好了就{closeLink}！",
+      "secretCloseText": "完成",
+      "delete": "删除后，所有使用此客户端的应用都将停止工作。",
+      "rotate": "轮换后，所有使用旧密钥的应用都将停止工作。",
+      "deprecation": "已不能在这里添加或编辑 API 密钥。请前往菜单中的“集成”页签创建新的 API 客户端。旧密钥暂时仍可使用："
+    },
+    "error": {
+      "loading": "无法获取客户端：{error}。"
+    }
+  },
+  "languages": {
+    "en-US": "English",
+    "zh-CN": "中文"
+  }
+}

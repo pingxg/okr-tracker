@@ -55,7 +55,17 @@ export const useAuthStore = defineStore('auth', () => {
       await User.update(user.value, { preferences: prefs });
     },
   });
-  const language = computed(() => preferences.value && preferences.value.lang);
+  const language = computed({
+    get() {
+      return preferences.value && preferences.value.lang;
+    },
+    async set(lang) {
+      if (!user.value) {
+        return;
+      }
+      await User.update(user.value, { preferences: { ...preferences.value, lang } });
+    },
+  });
 
   watch(trackerUser.user, async () => {
     if (!trackerUser.user.value) {

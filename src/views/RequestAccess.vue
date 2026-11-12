@@ -7,7 +7,6 @@ import api from '@/util/api';
 import '@oslokommune/punkt-elements/dist/pkt-alert.js';
 import '@oslokommune/punkt-elements/dist/pkt-backlink.js';
 import { BtnSave } from '@/components/generic/form';
-import BuildingsGraphic from '@/components/graphics/BuildingsGraphic.vue';
 
 const router = useRouter();
 const i18n = useI18n();
@@ -69,10 +68,6 @@ async function requestAccess({ email }, resetForm) {
         />
       </template>
     </FormSection>
-
-    <template #footer>
-      <BuildingsGraphic skin="dim" />
-    </template>
   </PageLayout>
 </template>
 
