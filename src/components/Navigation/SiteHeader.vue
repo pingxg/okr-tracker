@@ -12,7 +12,6 @@ import { NavMenu, NavMenuItem, NavMenuText } from '@/components/Navigation/navba
 import PeriodSelectorMenu from '@/components/Navigation/toolbar/PeriodSelectorMenu.vue';
 import ViewToggle from '@/components/Navigation/toolbar/ViewToggle.vue';
 import UserMenuDropdown from '@/components/Navigation/UserMenuDropdown.vue';
-import LanguageSwitch from '@/components/Navigation/LanguageSwitch.vue';
 import FadeTransition from '@/components/generic/transitions/FadeTransition.vue';
 
 const i18n = useI18n();
@@ -162,13 +161,6 @@ const showToolbar = computed(() => {
         </NavMenu>
       </FadeTransition>
 
-      <!-- Language -->
-      <NavMenu class="language-menu">
-        <NavMenuText>
-          <LanguageSwitch />
-        </NavMenuText>
-      </NavMenu>
-
       <!-- User menu -->
       <FadeTransition>
         <NavMenu v-if="user" class="user-menu">
@@ -235,15 +227,9 @@ const showToolbar = computed(() => {
   }
 }
 
-.language-menu {
+.user-menu {
   margin-left: auto;
 
-  :deep(.nav-menu-text__inner) {
-    padding: 0;
-  }
-}
-
-.user-menu {
   :deep(.nav-menu-item__content) {
     right: 0;
   }
