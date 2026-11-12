@@ -58,6 +58,10 @@ function open() {
       /* ignore */
     }
   });
+  // The server lost changes (its database listener reconnected): refresh all.
+  source.addEventListener('resync', () => {
+    bindings.forEach((b) => b.schedule());
+  });
   source.addEventListener('open', () => {
     // After a reconnect we may have missed events: refresh everything.
     if (opened) {

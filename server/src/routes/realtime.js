@@ -17,16 +17,46 @@ import { CHANNEL } from '../store/docstore.js';
 const emitter = new EventEmitter();
 emitter.setMaxListeners(0);
 let listener = null;
+let stopping = false;
+let reconnectTimer = null;
+let connectedOnce = false;
+
+const RECONNECT_MS = 2000;
+
+function scheduleReconnect(log) {
+  if (stopping || reconnectTimer) {
+    return;
+  }
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    startListener(log).catch(() => {});
+  }, RECONNECT_MS);
+}
 
 async function startListener(log) {
-  if (listener) {
+  if (listener || stopping) {
     return;
   }
   const client = new pg.Client({
     connectionString: config.databaseUrl,
     ssl: config.databaseSsl ? { rejectUnauthorized: false } : undefined,
+    // The connection is idle between writes; keepalives stop hosted
+    // databases from dropping it.
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10000,
   });
   listener = client;
+  const lost = (error) => {
+    if (listener !== client) {
+      return;
+    }
+    listener = null;
+    if (!stopping) {
+      log.error({ err: error }, 'LISTEN connection lost; reconnecting');
+      client.end().catch(() => {});
+      scheduleReconnect(log);
+    }
+  };
   client.on('notification', (msg) => {
     try {
       emitter.emit('change', JSON.parse(msg.payload));
@@ -34,16 +64,28 @@ async function startListener(log) {
       /* ignore malformed payloads */
     }
   });
-  client.on('error', (error) => {
-    log.error({ err: error }, 'LISTEN connection lost; reconnecting');
-    listener = null;
-    setTimeout(() => startListener(log).catch(() => {}), 2000);
-  });
-  await client.connect();
-  await client.query(`LISTEN ${CHANNEL}`);
+  client.on('error', lost);
+  client.on('end', () => lost(new Error('LISTEN connection ended')));
+  try {
+    await client.connect();
+    await client.query(`LISTEN ${CHANNEL}`);
+  } catch (error) {
+    // A failed reconnect must not leave a dead listener behind.
+    lost(error);
+    throw error;
+  }
+  if (connectedOnce) {
+    // Writes made while the connection was down were not seen: tell the
+    // browsers to reload what they show.
+    emitter.emit('resync');
+  }
+  connectedOnce = true;
 }
 
 export async function stopListener() {
+  stopping = true;
+  clearTimeout(reconnectTimer);
+  reconnectTimer = null;
   if (listener) {
     const c = listener;
     listener = null;
@@ -52,6 +94,7 @@ export async function stopListener() {
 }
 
 export default async function realtimeRoutes(fastify) {
+  stopping = false;
   await startListener(fastify.log);
   fastify.addHook('onClose', async () => stopListener());
 
@@ -76,12 +119,15 @@ export default async function realtimeRoutes(fastify) {
         res.write(`event: change\ndata: ${JSON.stringify(change)}\n\n`);
       }
     };
+    const onResync = () => res.write('event: resync\ndata: {}\n\n');
     const heartbeat = setInterval(() => res.write(': ping\n\n'), 25000);
 
     emitter.on('change', onChange);
+    emitter.on('resync', onResync);
     request.raw.on('close', () => {
       clearInterval(heartbeat);
       emitter.off('change', onChange);
+      emitter.off('resync', onResync);
     });
     return reply;
   });
