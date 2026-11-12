@@ -9,8 +9,8 @@ export const DEFAULTS = {
   // Spec §3: "层级数量和名称可配置". The group (root) type is fixed.
   'org.nodeTypes': [
     { key: 'group', nameZh: '集团', nameEn: 'Group' },
-    { key: 'entity', nameZh: '法人实体', nameEn: 'Legal entity' },
-    { key: 'brand', nameZh: '品牌或事业线', nameEn: 'Brand or business line' },
+    { key: 'entity', nameZh: '公司', nameEn: 'Company' },
+    { key: 'brand', nameZh: '品牌', nameEn: 'Brand' },
     { key: 'department', nameZh: '部门', nameEn: 'Department' },
     { key: 'team', nameZh: '团队', nameEn: 'Team' },
   ],

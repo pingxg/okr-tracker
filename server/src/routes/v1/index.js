@@ -35,6 +35,12 @@ const schemas = {
   usersQuery: z.object({
     q: z.string().trim().max(100).optional(),
     status: z.enum(['active', 'inactive', 'all']).default('active'),
+    nodeId: uuid.optional(),
+    role: z.enum(ROLES).optional(),
+    unassigned: z
+      .enum(['true', 'false'])
+      .transform((v) => v === 'true')
+      .optional(),
     limit: z.coerce.number().int().min(1).max(200).default(50),
     offset: z.coerce.number().int().min(0).default(0),
   }),
@@ -44,6 +50,7 @@ const schemas = {
       type: z.string().min(1).max(50),
       nameZh: name.optional(),
       nameEn: name.optional(),
+      leadUserId: uuid.optional(),
       effectiveDate: isoDate.optional(),
     })
     .strict(),
@@ -54,6 +61,7 @@ const schemas = {
       nameZh: name.nullable().optional(),
       nameEn: name.nullable().optional(),
       active: z.literal(false).optional(),
+      leadUserId: uuid.nullable().optional(),
       effectiveDate: isoDate.optional(),
       reason: z.string().trim().max(1000).optional(),
     })

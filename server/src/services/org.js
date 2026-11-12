@@ -87,7 +87,7 @@ export async function policyTree(client) {
 
 /** Memberships in effect on `date`, optionally for one user or one node. */
 export async function membershipsOn(date, filter, client) {
-  const { userId, nodeId } = filter || {};
+  const { userId, userIds, nodeId } = filter || {};
   const conditions = [IN_EFFECT('m', '$1')];
   const params = [date];
   if (userId) {
@@ -97,6 +97,10 @@ export async function membershipsOn(date, filter, client) {
   if (nodeId) {
     params.push(nodeId);
     conditions.push(`m.node_id = $${params.length}`);
+  }
+  if (userIds) {
+    params.push(userIds);
+    conditions.push(`m.user_id = ANY($${params.length}::uuid[])`);
   }
   const { rows } = await db(client).query(
     `SELECT m.*, u.name AS user_name, u.email AS user_email, u.status AS user_status,
@@ -285,6 +289,9 @@ export async function createNode(ctx, input, client) {
     ctx,
     after: created,
   });
+  if (input.leadUserId) {
+    await setNodeLead(ctx, node.id, created.type, input.leadUserId, on, client);
+  }
   return created;
 }
 
@@ -352,6 +359,20 @@ export async function updateNode(ctx, nodeId, input, client) {
     nameEn: input.nameEn !== undefined ? clean(input.nameEn) : latest.name_en,
   };
   assertName(next);
+  const nodeChanged =
+    next.parentId !== latest.parent_id ||
+    next.type !== latest.type ||
+    next.nameZh !== latest.name_zh ||
+    next.nameEn !== latest.name_en;
+  if (input.leadUserId !== undefined && isRoot) {
+    throw badRequest('root_node', 'The group is run by its group admins');
+  }
+  if (!nodeChanged) {
+    if (input.leadUserId !== undefined) {
+      await setNodeLead(ctx, nodeId, latest.type, input.leadUserId, on, client);
+    }
+    return before;
+  }
   if (input.type !== undefined && input.type !== latest.type) {
     if (isRoot) {
       throw badRequest('root_node', 'The group node keeps its type');
@@ -403,7 +424,56 @@ export async function updateNode(ctx, nodeId, input, client) {
     after,
     reason: input.reason,
   });
+  if (input.leadUserId !== undefined) {
+    await setNodeLead(ctx, nodeId, after.type, input.leadUserId, on, client);
+  }
   return after;
+}
+
+/** The role a node's owner (负责人) holds: companies and brands vs. departments and teams. */
+export const leadRoleFor = (type) =>
+  ['entity', 'brand'].includes(type) ? 'entity_lead' : 'team_lead';
+
+/**
+ * Make `userId` the node's owner from `on` (null removes the owner). A node has
+ * one owner; the previous owner's lead role ends on the same day.
+ */
+async function setNodeLead(ctx, nodeId, type, userId, on, client) {
+  const role = leadRoleFor(type);
+  const { rows: open } = await client.query(
+    `SELECT * FROM membership
+     WHERE node_id = $1 AND role IN ('entity_lead', 'team_lead') AND valid_to IS NULL`,
+    [nodeId]
+  );
+  const keep = userId ? open.find((m) => m.user_id === userId && m.role === role) : null;
+  const tree = await policyTree(client);
+  for (const m of open) {
+    if (m === keep) {
+      continue;
+    }
+    if (!access.canManageMembership(ctx.actor, tree, nodeId, m.role)) {
+      throw forbidden();
+    }
+    const validTo = m.valid_from > on ? m.valid_from : on;
+    const {
+      rows: [ended],
+    } = await client.query(
+      'UPDATE membership SET valid_to = $2 WHERE id = $1 RETURNING *',
+      [m.id, validTo]
+    );
+    await recordRevision(client, {
+      table: 'membership',
+      recordId: m.id,
+      action: 'delete',
+      ctx,
+      before: mapMembership(m),
+      after: mapMembership(ended),
+      reason: 'Owner changed',
+    });
+  }
+  if (userId && !keep) {
+    await addMembership(ctx, { userId, nodeId, role, effectiveDate: on }, client);
+  }
 }
 
 async function deactivateNode(ctx, latest, on, reason, client) {

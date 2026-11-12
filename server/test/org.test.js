@@ -517,3 +517,86 @@ test('deactivated people are locked out', { skip }, async () => {
   assert.equal(res.status, 403);
   assert.equal(res.body.code, 'user_inactive');
 });
+
+test(
+  'saving a node sets its owner; a new owner replaces the old one',
+  { skip },
+  async () => {
+    let res = await admin.patch(`/org/nodes/${nodes.entityB}`, {
+      leadUserId: people.leadA.id,
+    });
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    let node = await admin.get(`/org/nodes/${nodes.entityB}`);
+    assert.deepEqual(
+      node.body.memberships.map((m) => [m.userId, m.role]),
+      [[people.leadA.id, 'entity_lead']]
+    );
+    assert.equal(node.body.history.length, 1, 'an owner change is not a node change');
+
+    res = await admin.patch(`/org/nodes/${nodes.entityB}`, {
+      leadUserId: people.teamLead.id,
+    });
+    assert.equal(res.status, 200);
+    node = await admin.get(`/org/nodes/${nodes.entityB}`);
+    assert.deepEqual(
+      node.body.memberships.map((m) => m.userId),
+      [people.teamLead.id]
+    );
+
+    const created = await admin.post('/org/nodes', {
+      parentId: nodes.entityB,
+      type: 'team',
+      nameEn: 'B Sales',
+      leadUserId: people.member.id,
+    });
+    assert.equal(created.status, 201);
+    const tree = await admin.get('/org/tree');
+    const team = tree.body.nodes.find((n) => n.id === created.body.id);
+    assert.deepEqual(
+      team.leads.map((l) => [l.userId, l.role]),
+      [[people.member.id, 'team_lead']]
+    );
+
+    const { rows } = await pool.query(
+      "SELECT count(*)::int AS n FROM revision WHERE table_name = 'membership' AND reason = 'Owner changed'"
+    );
+    assert.equal(rows[0].n, 1);
+
+    const rootOwner = await admin.patch(`/org/nodes/${nodes.group}`, {
+      leadUserId: people.member.id,
+    });
+    assert.equal(rootOwner.body.code, 'root_node');
+  }
+);
+
+test(
+  'the people list carries roles and filters by company, role and unassigned',
+  { skip },
+  async () => {
+    await usersService.ensureUser({ email: 'fresh@test.fi', name: 'Fresh' });
+
+    const inB = await admin.get(`/users?nodeId=${nodes.entityB}`);
+    assert.equal(inB.status, 200);
+    assert.deepEqual(inB.body.items.map((u) => u.email).sort(), [
+      'member@test.fi',
+      'team.lead@test.fi',
+    ]);
+    const lead = inB.body.items.find((u) => u.email === 'team.lead@test.fi');
+    assert.ok(
+      lead.memberships.some(
+        (m) => m.role === 'entity_lead' && m.node.nameEn === 'Other Oy'
+      )
+    );
+
+    const owners = await admin.get('/users?role=entity_lead');
+    assert.ok(owners.body.items.some((u) => u.email === 'lead.a@test.fi'));
+
+    const fresh = await admin.get('/users?unassigned=true');
+    assert.deepEqual(
+      fresh.body.items.map((u) => u.email),
+      ['fresh@test.fi']
+    );
+    assert.equal(fresh.body.unassignedTotal, 1);
+    assert.deepEqual(fresh.body.items[0].memberships, []);
+  }
+);

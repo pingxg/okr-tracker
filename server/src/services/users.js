@@ -6,9 +6,9 @@ import config from '../config.js';
 import { db, withTransaction } from '../db/tx.js';
 import { today } from '../lib/dates.js';
 import { forbidden, notFound } from '../lib/errors.js';
-import { canEditOwnProfile, isGroupAdmin } from '../policy/access.js';
+import { ancestorsOf, canEditOwnProfile, isGroupAdmin } from '../policy/access.js';
 import { recordRevision, systemContext } from './audit.js';
-import { bootstrapGroupAdmin, membershipsOn } from './org.js';
+import { bootstrapGroupAdmin, getTree, membershipsOn } from './org.js';
 
 const mapUser = (r) => ({
   id: r.id,
@@ -155,31 +155,100 @@ export async function updateMe(ctx, input) {
   });
 }
 
-/** GET /users: search by name or email. */
-export async function searchUsers({ q, status = 'active', limit = 50, offset = 0 } = {}) {
+/**
+ * GET /users: the people list (admin "成员与角色" page and pickers).
+ *
+ * Filters: q (name or email), status, nodeId (people with a role on that node
+ * or below it), role, unassigned (signed in but without any role yet).
+ * Each person comes with their memberships in effect today.
+ */
+export async function searchUsers({
+  q,
+  status = 'active',
+  nodeId,
+  role,
+  unassigned = false,
+  limit = 50,
+  offset = 0,
+} = {}) {
+  const on = today();
+  const { nodes } = await getTree({ date: on });
+  const nodeById = new Map(nodes.map((n) => [n.id, n]));
   const conditions = [];
-  const params = [];
+  const params = [on];
+  // $1 is always today's date; the queries below always reference it so its
+  // type is known even when no membership filter is used.
+  const inEffect = (alias) =>
+    `${alias}.valid_from <= $1::date AND (${alias}.valid_to IS NULL OR $1::date < ${alias}.valid_to)`;
+
   if (status !== 'all') {
     params.push(status);
-    conditions.push(`status = $${params.length}`);
+    conditions.push(`u.status = $${params.length}`);
   }
   if (q) {
     params.push(`%${q.toLowerCase().replace(/[%_\\]/g, '\\$&')}%`);
     conditions.push(
-      `(lower(coalesce(name, '')) LIKE $${params.length} OR email LIKE $${params.length})`
+      `(lower(coalesce(u.name, '')) LIKE $${params.length} OR u.email LIKE $${params.length})`
     );
   }
+  if (nodeId || role) {
+    const sub = ['m.user_id = u.id', inEffect('m')];
+    if (nodeId) {
+      const parentOf = new Map(nodes.map((n) => [n.id, n.parentId]));
+      const subtree = nodes
+        .filter((n) => ancestorsOf({ parentOf }, n.id).includes(nodeId))
+        .map((n) => n.id);
+      params.push(subtree);
+      sub.push(`m.node_id = ANY($${params.length}::uuid[])`);
+    }
+    if (role) {
+      params.push(role);
+      sub.push(`m.role = $${params.length}`);
+    }
+    conditions.push(`EXISTS (SELECT 1 FROM membership m WHERE ${sub.join(' AND ')})`);
+  }
+  const noRole = `NOT EXISTS (SELECT 1 FROM membership m WHERE m.user_id = u.id AND ${inEffect(
+    'm'
+  )})`;
+  if (unassigned) {
+    conditions.push(noRole);
+  }
+
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   params.push(limit, offset);
   const { rows } = await db().query(
-    `SELECT *, count(*) OVER () AS total FROM app_user ${where}
-     ORDER BY name NULLS LAST, email
+    `SELECT u.*, $1::date AS as_of, count(*) OVER () AS total FROM app_user u ${where}
+     ORDER BY u.name NULLS LAST, u.email
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params
   );
+  const {
+    rows: [counts],
+  } = await db().query(
+    `SELECT count(*) AS unassigned FROM app_user u WHERE u.status = 'active' AND ${noRole}`,
+    [on]
+  );
+
+  const ids = rows.map((r) => r.id);
+  const memberships = ids.length ? await membershipsOn(on, { userIds: ids }) : [];
+  const byUser = new Map(ids.map((id) => [id, []]));
+  for (const m of memberships) {
+    byUser.get(m.userId).push({
+      id: m.id,
+      role: m.role,
+      isPrimary: m.isPrimary,
+      validFrom: m.validFrom,
+      node: (({ id, type, nameZh, nameEn }) => ({ id, type, nameZh, nameEn }))(
+        nodeById.get(m.nodeId) || { id: m.nodeId }
+      ),
+      reportsTo: m.reportsToUser,
+    });
+  }
+
   return {
     total: rows.length ? Number(rows[0].total) : 0,
-    items: rows.map(mapUser),
+    unassignedTotal: Number(counts.unassigned),
+    items: rows.map((r) => ({ ...mapUser(r), memberships: byUser.get(r.id) })),
   };
 }
 
