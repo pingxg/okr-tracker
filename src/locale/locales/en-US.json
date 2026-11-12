@@ -281,12 +281,12 @@
     "welcome": "Welcome {user}",
     "add": {
       "users": "Add user | {count} users",
-      "product": "Created new product. Please wait, you will be redirected in 5 seconds",
+      "product": "Created new product",
       "objective": "Created an objective for {period}",
-      "department": "Created new department. Please wait, you will be redirected in 5 seconds",
+      "department": "Created new department",
       "keyResult": "Created new key result",
       "period": "Created new period",
-      "organization": "Created new organization. Please wait, you will be redirected in 5 seconds",
+      "organization": "Created new organization",
       "kpi": "Created new measurement",
       "progress": "Created new value"
     },

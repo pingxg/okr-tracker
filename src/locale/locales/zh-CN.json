@@ -281,12 +281,12 @@
     "welcome": "欢迎，{user}",
     "add": {
       "users": "已添加用户 | 已添加 {count} 位用户",
-      "product": "已创建新产品，5 秒后将自动跳转",
+      "product": "已创建新产品",
       "objective": "已为 {period} 创建目标",
-      "department": "已创建新部门，5 秒后将自动跳转",
+      "department": "已创建新部门",
       "keyResult": "已创建新的关键结果",
       "period": "已创建新周期",
-      "organization": "已创建新组织，5 秒后将自动跳转",
+      "organization": "已创建新组织",
       "kpi": "已创建新指标",
       "progress": "已添加新数值"
     },
