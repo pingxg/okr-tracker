@@ -36,7 +36,10 @@ server/
   src/
     app.js           Fastify server, mounts the legacy Express apps
     auth/            OIDC login, sessions, user provisioning
-    policy/          Access rules (port of firestore.rules)
+    policy/          Access rules: rules.js (port of firestore.rules, current UI)
+                     and access.js (API v1, spec §19)
+    services/        API v1 business rules: people, org structure, audit log
+    routes/v1/       API v1 (/api/v1/me, /users, /org, /memberships)
     store/           Document store on Postgres, queries, triggers
     compat/          Firebase Admin / Functions stand-ins used by the ported functions
     functions/       Ported Cloud Functions (audit, slugs, progress, KPI, external API)
