@@ -665,5 +665,87 @@
   "languages": {
     "en-US": "English",
     "zh-CN": "中文"
+  },
+  "org": {
+    "title": "Organization",
+    "nodeTypes": {
+      "group": "Group",
+      "entity": "Company",
+      "brand": "Brand",
+      "department": "Department",
+      "team": "Team"
+    },
+    "roles": {
+      "group_admin": "Admin",
+      "entity_lead": "Company owner",
+      "team_lead": "Team owner",
+      "member": "Member",
+      "observer": "Viewer"
+    },
+    "count": {
+      "companies": "No companies | 1 company | {n} companies",
+      "teams": "No teams | 1 team | {n} teams"
+    },
+    "type": "Type",
+    "owner": "Owner",
+    "effective": "Effective from",
+    "members": "Members",
+    "units": "Units below",
+    "none": "None",
+    "noMembers": "No members yet",
+    "reportsTo": "Reports to",
+    "edit": "Edit",
+    "notFound": "Node not found",
+    "admin": {
+      "structure": "Organization structure",
+      "structureText": "Maintain the group, companies and teams. Every change has an effective date and keeps its history.",
+      "members": "Members and roles",
+      "membersText": "Assign people to teams and set their roles and reporting lines.",
+      "back": "Back to admin",
+      "add": "Add node",
+      "edit": "Edit node",
+      "new": "New node",
+      "nameZh": "Chinese name",
+      "nameEn": "English name",
+      "parent": "Parent",
+      "note": "Moving or deactivating a node keeps its history.",
+      "groupNote": "The group node cannot be moved or deactivated.",
+      "deactivate": "Deactivate node",
+      "saved": "Saved",
+      "created": "Node created",
+      "deactivated": "Node deactivated"
+    },
+    "people": {
+      "search": "Search {count} people",
+      "unassigned": "{n} people have no team or role yet",
+      "notAssigned": "Not assigned",
+      "lastLogin": "Last sign-in",
+      "current": "Teams and roles",
+      "add": "Assign team and role",
+      "node": "Team",
+      "role": "Role",
+      "primary": "Primary",
+      "assign": "Assign",
+      "end": "End",
+      "assigned": "Assigned",
+      "ended": "Ended",
+      "choose": "Select a person on the left"
+    },
+    "errors": {
+      "forbidden": "Missing permission for this action.",
+      "name_required": "Enter a Chinese or English name.",
+      "invalid_parent": "The parent node is not valid.",
+      "invalid_node_type": "The node type is not valid.",
+      "node_has_children": "Move or deactivate the nodes below it first.",
+      "node_has_future_memberships": "The node has memberships that start later. Handle them first.",
+      "last_group_admin": "The group needs at least one admin.",
+      "membership_exists": "The person already has this role on this node.",
+      "effective_date_too_early": "The effective date cannot be before the last change.",
+      "root_node": "The group node cannot be moved or deactivated.",
+      "invalid_role": "Admins can only be set on the group node.",
+      "invalid_reports_to": "The reporting line is not valid.",
+      "invalid_user": "The person does not exist or has been deactivated.",
+      "node_inactive": "The node has been deactivated."
+    }
   }
 }

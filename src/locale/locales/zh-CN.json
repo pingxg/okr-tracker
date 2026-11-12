@@ -665,5 +665,87 @@
   "languages": {
     "en-US": "English",
     "zh-CN": "中文"
+  },
+  "org": {
+    "title": "组织架构",
+    "nodeTypes": {
+      "group": "集团",
+      "entity": "公司",
+      "brand": "品牌",
+      "department": "部门",
+      "team": "团队"
+    },
+    "roles": {
+      "group_admin": "管理员",
+      "entity_lead": "公司负责人",
+      "team_lead": "团队负责人",
+      "member": "成员",
+      "observer": "只读观察者"
+    },
+    "count": {
+      "companies": "{n} 家公司",
+      "teams": "{n} 个团队"
+    },
+    "type": "类型",
+    "owner": "负责人",
+    "effective": "生效日期",
+    "members": "成员",
+    "units": "下级",
+    "none": "无",
+    "noMembers": "暂无成员",
+    "reportsTo": "汇报给",
+    "edit": "编辑",
+    "notFound": "找不到该节点",
+    "admin": {
+      "structure": "组织架构维护",
+      "structureText": "维护集团、公司和团队，所有调整带生效日期并保留历史。",
+      "members": "成员与角色",
+      "membersText": "把成员分配到团队并设置角色和汇报关系。",
+      "back": "返回管理",
+      "add": "添加节点",
+      "edit": "编辑节点",
+      "new": "新节点",
+      "nameZh": "中文名称",
+      "nameEn": "英文名称",
+      "parent": "上级",
+      "note": "调整上级或停用节点均保留历史记录。",
+      "groupNote": "集团节点不能移动或停用。",
+      "deactivate": "停用节点",
+      "saved": "已保存",
+      "created": "节点已创建",
+      "deactivated": "节点已停用"
+    },
+    "people": {
+      "search": "搜索 {count} 位成员",
+      "unassigned": "{n} 人尚未分配团队和角色",
+      "notAssigned": "尚未分配",
+      "lastLogin": "最近登录",
+      "current": "团队和角色",
+      "add": "分配团队和角色",
+      "node": "团队",
+      "role": "角色",
+      "primary": "主岗",
+      "assign": "分配",
+      "end": "结束",
+      "assigned": "已分配",
+      "ended": "已结束",
+      "choose": "选择左侧的成员"
+    },
+    "errors": {
+      "forbidden": "无权限执行此操作。",
+      "name_required": "请填写中文或英文名称。",
+      "invalid_parent": "上级节点无效。",
+      "invalid_node_type": "节点类型无效。",
+      "node_has_children": "请先移动或停用下级节点。",
+      "node_has_future_memberships": "该节点有尚未生效的成员，请先处理。",
+      "last_group_admin": "集团至少需要一名管理员。",
+      "membership_exists": "该成员在此节点已有该角色。",
+      "effective_date_too_early": "生效日期不能早于上一次调整。",
+      "root_node": "集团节点不能移动或停用。",
+      "invalid_role": "管理员只能设在集团节点上。",
+      "invalid_reports_to": "汇报对象无效。",
+      "invalid_user": "该成员不存在或已停用。",
+      "node_inactive": "该节点已停用。"
+    }
   }
 }

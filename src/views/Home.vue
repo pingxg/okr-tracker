@@ -1,9 +1,12 @@
 <script setup>
+import { computed, onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@unhead/vue';
 import { useTrackerStore } from '@/store/tracker';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';
+import { getOrgTree } from '@/api/org';
+import { indexTree, nodeName } from '@/util/orgStructure';
 import OrganizationCard from '@/components/Navigation/header/OrganizationCard.vue';
 import ItemLinkCard from '@/components/ItemLinkCard.vue';
 
@@ -13,7 +16,42 @@ const { owner, organizations } = storeToRefs(useTrackerStore());
 const activeOrganizationStore = useActiveOrganizationStore();
 const { organization, organizationTree } = storeToRefs(activeOrganizationStore);
 
-useHead({ title: () => organization.value?.name });
+// Organisation structure (API v1). Shown once it has companies; until then
+// the front page works as before.
+const orgNodes = ref([]);
+const orgIndex = computed(() => indexTree(orgNodes.value, i18n.locale.value));
+const orgRoot = computed(() => orgIndex.value.root);
+const orgCompanies = computed(() =>
+  orgRoot.value ? orgIndex.value.children.get(orgRoot.value.id) : []
+);
+const hasStructure = computed(() => orgCompanies.value.length > 0);
+const orgName = (node) => nodeName(node, i18n.locale.value);
+const orgRoute = (node) => ({ name: 'OrgNode', params: { id: node.id } });
+const orgSummary = computed(() => {
+  if (!orgRoot.value) {
+    return '';
+  }
+  const companies = orgIndex.value.countType(orgRoot.value.id, 'entity');
+  const teams = orgIndex.value.countType(orgRoot.value.id, 'team');
+  return [
+    companies && i18n.t('org.count.companies', { n: companies }, companies),
+    teams && i18n.t('org.count.teams', { n: teams }, teams),
+  ]
+    .filter(Boolean)
+    .join(i18n.locale.value === 'zh-CN' ? '，' : ', ');
+});
+
+onMounted(async () => {
+  try {
+    orgNodes.value = (await getOrgTree()).nodes;
+  } catch {
+    orgNodes.value = [];
+  }
+});
+
+useHead({
+  title: () => (hasStructure.value ? orgName(orgRoot.value) : organization.value?.name),
+});
 
 function sortByLocale(arr) {
   return arr.sort((a, b) =>
@@ -26,14 +64,60 @@ function sortByLocale(arr) {
 </script>
 
 <template>
-  <PageLayout :breakpoint="organization ? 'tablet-big' : 'phablet'">
-    <template v-if="organization" #header>
+  <PageLayout :breakpoint="organization || hasStructure ? 'tablet-big' : 'phablet'">
+    <template v-if="organization && !hasStructure" #header>
       <OrganizationCard />
     </template>
 
     <template #default>
       <div class="home-page">
-        <template v-if="!organization">
+        <template v-if="hasStructure">
+          <div class="home-page__organization">
+            <ItemLinkCard
+              :route="orgRoute(orgRoot)"
+              :title="orgName(orgRoot)"
+              size="large"
+              centered
+            />
+            <p>{{ orgSummary }}</p>
+          </div>
+
+          <div class="pkt-grid">
+            <div
+              v-for="company in orgCompanies"
+              :key="company.id"
+              :class="[
+                'pkt-cell',
+                'pkt-cell--span12',
+                'pkt-cell--span6-tablet-up',
+                'pkt-cell--span4-laptop-up',
+              ]"
+            >
+              <div>
+                <ItemLinkCard
+                  :route="orgRoute(company)"
+                  :title="orgName(company)"
+                  size="medium"
+                />
+
+                <div
+                  v-if="orgIndex.children.get(company.id).length"
+                  class="py-size-8 px-size-16--tablet-up"
+                >
+                  <ItemLinkCard
+                    v-for="unit in orgIndex.children.get(company.id)"
+                    :key="unit.id"
+                    :route="orgRoute(unit)"
+                    :title="orgName(unit)"
+                    transparent
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <template v-else-if="!organization">
           <div class="home-page__title">
             <h1>
               {{ $t('home.welcome', { appName: $t('general.appName') }) }}

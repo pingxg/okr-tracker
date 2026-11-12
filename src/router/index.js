@@ -66,7 +66,22 @@ const routes = [
         name: 'CreateProduct',
         component: CreateProduct,
       },
+      {
+        path: 'org',
+        name: 'AdminOrgStructure',
+        component: () => import('@/views/Admin/AdminOrgStructure.vue'),
+      },
+      {
+        path: 'org/members',
+        name: 'AdminOrgMembers',
+        component: () => import('@/views/Admin/AdminOrgMembers.vue'),
+      },
     ],
+  },
+  {
+    path: '/org/:id',
+    name: 'OrgNode',
+    component: () => import('@/views/OrgNode.vue'),
   },
   {
     path: '/help',
