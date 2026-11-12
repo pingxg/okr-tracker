@@ -4,7 +4,6 @@
 import config from '../config.js';
 import { commit, getDocument, listDocumentIds } from '../store/docstore.js';
 import { sessionFromCookieHeader } from './session.js';
-import { ensureUser } from '../services/users.js';
 
 // Same defaults as the original UsersCollection / defaultPreferences.
 import defaultPreferences from '../functions/util/defaultPreferences.js';
@@ -62,26 +61,6 @@ export async function ensureTrackerUser({ email, name, oid, autoCreate = false }
   };
   await commit([{ type: 'create', path, data }], { runHooks: false });
   return data;
-}
-
-/**
- * Everything a successful login must do: allow the person in under the rules
- * above (legacy `users/{email}` document for the current UI) and keep the
- * people table of API v1 in sync (spec §3 "入职"). Returns null when the person
- * is not allowed in.
- */
-export async function registerLogin({
-  email,
-  name = null,
-  oid = null,
-  autoCreate = false,
-}) {
-  const trackerUser = await ensureTrackerUser({ email, name, oid, autoCreate });
-  if (!trackerUser) {
-    return null;
-  }
-  await ensureUser({ email, name, oid });
-  return trackerUser;
 }
 
 /**

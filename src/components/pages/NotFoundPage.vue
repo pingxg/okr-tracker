@@ -1,16 +1,17 @@
 <script setup>
 import EmptyPage from '@/components/pages/EmptyPage.vue';
+import i18n from '@/locale/i18n';
 
 defineProps({
   heading: {
     type: String,
     required: false,
-    default: null,
+    default: i18n.global.t('notFound.title'),
   },
   body: {
     type: String,
     required: false,
-    default: null,
+    default: i18n.global.t('notFound.body'),
   },
   backTo: {
     type: Object,
@@ -20,20 +21,16 @@ defineProps({
   backText: {
     type: String,
     required: false,
-    default: null,
+    default: i18n.global.t('notFound.linkText'),
   },
 });
 </script>
 
 <template>
-  <EmptyPage
-    :heading="heading ?? $t('notFound.title')"
-    :body="body ?? $t('notFound.body')"
-    skin="warning"
-  >
+  <EmptyPage :heading="heading" :body="body" skin="warning">
     <RouterLink v-if="backTo" :to="backTo" class="pkt-link">
       <pkt-icon class="pkt-link__icon" name="chevron-left" />
-      {{ backText ?? $t('notFound.linkText') }}
+      {{ backText }}
     </RouterLink>
   </EmptyPage>
 </template>

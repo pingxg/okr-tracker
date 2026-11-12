@@ -11,7 +11,6 @@ import config from './config.js';
 import authRoutes from './auth/routes.js';
 import docRoutes from './routes/docs.js';
 import realtimeRoutes from './routes/realtime.js';
-import v1Routes from './routes/v1/index.js';
 import { listTriggers } from './store/hooks.js';
 import pool from './db/pool.js';
 
@@ -45,7 +44,6 @@ export async function buildApp({ logger = true } = {}) {
     reply.code(status).send({
       message: status >= 500 ? 'Internal server error' : error.message,
       code: error.code,
-      ...(status < 500 && error.details ? { details: error.details } : {}),
     });
   });
 
@@ -57,7 +55,6 @@ export async function buildApp({ logger = true } = {}) {
   await fastify.register(authRoutes);
   await fastify.register(docRoutes);
   await fastify.register(realtimeRoutes);
-  await fastify.register(v1Routes, { prefix: '/api/v1' });
 
   // Built frontend with SPA fallback.
   if (existsSync(config.staticDir)) {

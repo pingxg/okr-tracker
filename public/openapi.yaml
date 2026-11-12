@@ -4,6 +4,10 @@ info:
   title: OKR Tracker API
   description: API for updating KPIs and key results.
   version: 2.2.0
+  contact:
+    name: Dataspeilet
+    url: https://okr.oslo.systems
+    email: dataspeilet@oslo.kommune.no
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT

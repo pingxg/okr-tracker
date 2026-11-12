@@ -21,7 +21,7 @@ test('create resolves serverTimestamp and refuses existing documents', () => {
 test('update supports dot paths, delete, arrayUnion/arrayRemove and increment', () => {
   const before = {
     name: 'x',
-    prefs: { lang: 'zh-CN', view: 'list' },
+    prefs: { lang: 'nb-NO', view: 'list' },
     team: [{ __ref: 'users/a' }],
     n: 1,
     gone: 1,
@@ -58,7 +58,7 @@ test('update supports dot paths, delete, arrayUnion/arrayRemove and increment', 
   );
   assert.deepEqual(removed.team, [{ __ref: 'users/b' }]);
   // Original is not mutated
-  assert.equal(before.prefs.lang, 'zh-CN');
+  assert.equal(before.prefs.lang, 'nb-NO');
 });
 
 test('update of a missing document fails; set merge deep-merges', () => {

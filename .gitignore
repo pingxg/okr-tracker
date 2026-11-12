@@ -5,7 +5,6 @@ docs/
 
 # local env files
 .env.*
-!.env.example
 
 # Log files
 *.log

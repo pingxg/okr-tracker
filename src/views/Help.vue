@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { marked } from 'marked';
 import dompurify from 'dompurify';
 import { useI18n } from 'vue-i18n';
@@ -11,23 +11,15 @@ marked.setOptions({ smartypants: true });
 
 const i18n = useI18n();
 
-useHead({ title: () => i18n.t('general.help') });
+useHead({ title: i18n.t('general.help') });
 
 const markdown = ref('');
 const toc = ref([]);
 
-// English is help.md; other languages are help.<locale>.md
-const HELP_FILES = { 'zh-CN': '/help.zh-CN.md' };
-
-watch(
-  i18n.locale,
-  async (locale) => {
-    const response = await fetch(HELP_FILES[locale] || '/help.md');
-    markdown.value = dompurify.sanitize(marked(await response.text()));
-    toc.value = tableOfContent(markdown.value);
-  },
-  { immediate: true }
-);
+fetch('./help.md').then(async (response) => {
+  markdown.value = dompurify.sanitize(marked(await response.text()));
+  toc.value = tableOfContent(markdown.value);
+});
 </script>
 
 <template>

@@ -1,12 +1,5 @@
-// System fonts instead of the Oslo Sans brand font. The stack covers Latin
-// and Chinese text on Windows, macOS, Linux and mobile.
 @use '@oslokommune/punkt-css/dist/scss/abstracts/variables' with (
-  $font-family: (
-    'normal':
-      "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif",
-    'icon': 'sans-serif',
-  ),
-  $font-face: ()
+  $font-path: '@oslokommune/punkt-assets/dist'
 );
 
 @use 'reset';

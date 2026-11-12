@@ -1,4 +1,6 @@
 <script setup>
+import BuildingsGraphic from '@/components/graphics/BuildingsGraphic.vue';
+
 defineProps({
   heading: {
     type: String,
@@ -15,6 +17,10 @@ defineProps({
     default: 'info',
     validator: (value) => ['info', 'success', 'warning', 'error', 'dim'].includes(value),
   },
+  showGraphic: {
+    type: Boolean,
+    default: true,
+  },
 });
 </script>
 
@@ -27,6 +33,10 @@ defineProps({
       <div v-if="$slots.default" class="empty__actions">
         <slot />
       </div>
+    </div>
+
+    <div v-if="showGraphic" class="empty__footer">
+      <BuildingsGraphic :skin="skin" class="empty__graphic" />
     </div>
   </div>
 </template>
@@ -92,6 +102,10 @@ $-empty-state-skins: (
 
   &__actions {
     margin-top: 1rem;
+  }
+
+  &__graphic {
+    display: block;
   }
 
   &__footer {

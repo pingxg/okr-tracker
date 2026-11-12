@@ -19,7 +19,6 @@ The original project is © 2020 Oslo kommune, MIT licensed (see [LICENCE](LICENC
 | External API on Cloud Functions + Google API Gateway | Same Express routes mounted at `/api/external` (see `public/openapi.yaml`) |
 | Scheduled Firestore backups | `server/scripts/backup.js` (`pg_dump`) and the database host's point-in-time recovery |
 | Apps Script user sync, Google Sheets integration | Removed; users are created on first SSO login |
-| Norwegian and English UI, Oslo kommune logo, city skyline and Oslo Sans font | English and Chinese UI (`src/locale/locales/`, `public/help*.md`), system fonts, neutral favicon |
 
 Phase 1 keeps the original data model: every Firestore document is a row in the `documents`
 table with the same path and fields (see `server/src/db/migrations/001_documents.sql`).
@@ -36,10 +35,7 @@ server/
   src/
     app.js           Fastify server, mounts the legacy Express apps
     auth/            OIDC login, sessions, user provisioning
-    policy/          Access rules: rules.js (port of firestore.rules, current UI)
-                     and access.js (API v1, spec §19)
-    services/        API v1 business rules: people, org structure, audit log
-    routes/v1/       API v1 (/api/v1/me, /users, /org, /memberships)
+    policy/          Access rules (port of firestore.rules)
     store/           Document store on Postgres, queries, triggers
     compat/          Firebase Admin / Functions stand-ins used by the ported functions
     functions/       Ported Cloud Functions (audit, slugs, progress, KPI, external API)
@@ -65,26 +61,12 @@ Open http://localhost:3000 and sign in with `admin@example.com` and password `ok
 
 ```bash
 npm install
-(cd server && npm install)                # not `npm --prefix server install`: it adds the root package as a dependency
+npm --prefix server install
 cp server/.env.example server/.env        # set DATABASE_URL and DEV_LOGIN_PASSWORD
 npm --prefix server run seed              # optional demo data (admin@example.com)
 npm run dev:server                        # API on http://localhost:3000
 npm run dev                               # frontend on http://localhost:8080, proxies /api
 ```
-
-### Against an existing Render database
-
-Copy the **External Database URL** from the database's Connect menu in Render into
-`server/.env` and turn on SSL:
-
-```bash
-DATABASE_URL=postgresql://<user>:<password>@<host>.frankfurt-postgres.render.com/<db>
-DATABASE_SSL=true
-```
-
-The server applies pending migrations on start; set `SKIP_MIGRATIONS=true` to leave the schema
-alone. Writes from your machine go to that database, so point local development at a copy rather
-than production data.
 
 ## Sign-in with Microsoft Entra ID
 

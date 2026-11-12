@@ -1,6 +1,7 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { useRoute } from 'vue-router';
+import { useTrackerStore } from '@/store/tracker';
 import { useAuthStore } from '@/store/auth';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';
 import { NavMenu, NavMenuItem, NavMenuSeparator } from '@/components/Navigation/navbar';
@@ -8,6 +9,7 @@ import OrganizationCard from './header/OrganizationCard.vue';
 
 const route = useRoute();
 
+const { version } = storeToRefs(useTrackerStore());
 const { user } = storeToRefs(useAuthStore());
 const { organization, organizationTree } = storeToRefs(useActiveOrganizationStore());
 
@@ -66,6 +68,14 @@ function getItemRoute(slug) {
         </template>
       </NavMenu>
     </nav>
+
+    <div class="site-menu-dropdown__footer pkt-txt-12-medium">
+      <img
+        alt="Oslo kommune logo"
+        src="@oslokommune/punkt-assets/dist/logos/oslologo.svg"
+      />
+      <span>v{{ version }}</span>
+    </div>
   </aside>
 </template>
 
@@ -92,6 +102,20 @@ $-dropdown-max-height: calc(100vh - 3.5rem);
   &__body {
     padding: 1rem;
     overflow-y: auto;
+  }
+
+  &__footer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    margin-top: auto;
+    opacity: 0.25;
+
+    img {
+      height: 1.5rem;
+    }
   }
 }
 

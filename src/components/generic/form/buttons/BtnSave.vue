@@ -1,11 +1,12 @@
 <script setup>
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
+import i18n from '@/locale/i18n';
 
 defineProps({
   text: {
     type: String,
     required: false,
-    default: null,
+    default: i18n.global.t('btn.save'),
   },
   variant: {
     type: String,
@@ -17,6 +18,6 @@ defineProps({
 
 <template>
   <pkt-button v-bind="$attrs" skin="primary" :variant="variant" iconName="save">
-    <span>{{ text ?? $t('btn.save') }}</span>
+    <span>{{ text }}</span>
   </pkt-button>
 </template>

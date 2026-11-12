@@ -57,9 +57,6 @@ const config = {
 
   // Run Firestore-trigger equivalents (audit, slugs, progress) after writes.
   hooksEnabled: bool(env.HOOKS_ENABLED, true),
-
-  // Time zone for "today" (effective dates, reminders). Spec §18: Helsinki.
-  timeZone: env.ORG_TIMEZONE || 'Europe/Helsinki',
 };
 
 export function assertProductionConfig() {

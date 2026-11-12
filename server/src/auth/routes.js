@@ -17,7 +17,7 @@ import {
   decodeSigned,
   encodeSigned,
 } from './session.js';
-import { actorFromRequest, registerLogin } from './users.js';
+import { actorFromRequest, ensureTrackerUser } from './users.js';
 
 const OIDC_COOKIE = 'okr_oidc';
 let oidcConfigPromise = null;
@@ -124,7 +124,7 @@ export default async function authRoutes(fastify) {
 
     const name = claims.name || null;
     const oid = claims.oid || claims.sub || null;
-    await registerLogin({ email, name, oid, autoCreate: config.autoCreateUsers });
+    await ensureTrackerUser({ email, name, oid, autoCreate: config.autoCreateUsers });
 
     reply.setCookie(
       SESSION_COOKIE,
@@ -154,7 +154,7 @@ export default async function authRoutes(fastify) {
         .send({ message: 'Wrong password', code: 'auth/wrong-password' });
     }
     const normalized = email.toLowerCase();
-    await registerLogin({ email: normalized });
+    await ensureTrackerUser({ email: normalized, name: null, oid: null });
     reply.setCookie(
       SESSION_COOKIE,
       createSession({ email: normalized, provider: 'password' }),

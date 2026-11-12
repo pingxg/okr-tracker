@@ -1,4 +1,5 @@
 <script setup>
+import BuildingsGraphic from '@/components/graphics/BuildingsGraphic.vue';
 import EmptyState from '@/components/EmptyState.vue';
 
 defineProps({
@@ -25,9 +26,13 @@ defineProps({
 <template>
   <PageLayout breakpoint="phablet" :class="['empty-page', `empty-page--${skin}`]">
     <template #default>
-      <EmptyState v-bind="$props">
+      <EmptyState v-bind="$props" :show-graphic="false">
         <slot />
       </EmptyState>
+    </template>
+
+    <template #footer>
+      <BuildingsGraphic :skin="skin" class="empty-page__graphic" />
     </template>
   </PageLayout>
 </template>
@@ -45,6 +50,10 @@ $-empty-page-skins: (
     &--#{$skin} {
       background-color: $color;
     }
+  }
+
+  &__graphic {
+    display: block;
   }
 }
 </style>

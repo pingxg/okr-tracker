@@ -2,12 +2,13 @@
 import { computed, nextTick, ref } from 'vue';
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
+import i18n from '@/locale/i18n';
 
 const props = defineProps({
   text: {
     type: String,
     required: false,
-    default: null,
+    default: i18n.global.t('btn.delete'),
   },
   tooltipText: {
     type: String,
@@ -17,7 +18,7 @@ const props = defineProps({
   confirmText: {
     type: String,
     required: false,
-    default: null,
+    default: i18n.global.t('btn.confirmDelete'),
   },
   confirmHelp: {
     type: String,
@@ -92,7 +93,7 @@ function confirm(e, hide) {
           :variant="variant"
           :iconName="iconName"
         >
-          <span>{{ text ?? $t('btn.delete') }}</span>
+          <span>{{ text }}</span>
         </pkt-button>
       </template>
 
@@ -106,7 +107,7 @@ function confirm(e, hide) {
             :size="$attrs?.size || 'medium'"
             @click="confirm($event, hide)"
           >
-            <span>{{ confirmText ?? $t('btn.confirmDelete') }}</span>
+            <span>{{ confirmText }}</span>
           </pkt-button>
         </div>
       </template>

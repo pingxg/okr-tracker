@@ -9,10 +9,11 @@ import '@oslokommune/punkt-elements/dist/pkt-alert.js';
 import { loginProviderGoogle, loginProviderMS } from '@/config/backend';
 import { useAuthStore } from '@/store/auth';
 import { BtnSave } from '@/components/generic/form';
+import BuildingsGraphic from '@/components/graphics/BuildingsGraphic.vue';
 
 const i18n = useI18n();
 
-useHead({ title: () => i18n.t('login.login') });
+useHead({ title: i18n.t('login.login') });
 
 const authStore = useAuthStore();
 const { isAuthenticating, authenticationProviders, authenticationError } =
@@ -131,6 +132,10 @@ async function loginWithProvider(provider) {
         </pkt-button>
       </RouterLink>
     </div>
+
+    <template #footer>
+      <BuildingsGraphic skin="dim" />
+    </template>
   </PageLayout>
 </template>
 
