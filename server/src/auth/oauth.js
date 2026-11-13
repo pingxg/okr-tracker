@@ -128,11 +128,20 @@ export default async function oauthRoutes(fastify) {
         'Content-Type, Authorization, MCP-Protocol-Version'
       );
       reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      if (request.method === 'OPTIONS') {
-        reply.code(204).send();
-      }
     }
   });
+
+  // CORS preflight. Needs real routes: without one, the request goes to the
+  // app's 404 handler, which these hooks do not reach.
+  [
+    '/.well-known/oauth-protected-resource',
+    '/.well-known/oauth-protected-resource/mcp',
+    '/.well-known/oauth-authorization-server',
+    '/oauth/register',
+    '/oauth/token',
+  ].forEach((path) =>
+    fastify.options(path, async (request, reply) => reply.code(204).send())
+  );
 
   const protectedResource = async () => ({
     resource: mcpResourceUrl(),
