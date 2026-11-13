@@ -1,14 +1,13 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@unhead/vue';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
 import '@oslokommune/punkt-elements/dist/pkt-loader.js';
 import '@oslokommune/punkt-elements/dist/pkt-alert.js';
-import { loginProviderGoogle, loginProviderMS } from '@/config/backend';
+import { loginProviderMS } from '@/config/backend';
 import { useAuthStore } from '@/store/auth';
-import { BtnSave } from '@/components/generic/form';
 import BuildingsGraphic from '@/components/graphics/BuildingsGraphic.vue';
 
 const i18n = useI18n();
@@ -18,9 +17,12 @@ useHead({ title: () => i18n.t('login.login') });
 const authStore = useAuthStore();
 const { isAuthenticating, authenticationProviders, authenticationError } =
   storeToRefs(authStore);
-const { signInWithProvider, signInWithEmail } = authStore;
+const { signInWithProvider } = authStore;
 
-const showForm = ref(false);
+// Microsoft 365 is the only way to sign in.
+const microsoftEnabled = computed(() =>
+  authenticationProviders.value.includes('microsoft')
+);
 
 const authenticationErrorMessage = computed(() => {
   switch (authenticationError.value) {
@@ -28,23 +30,12 @@ const authenticationErrorMessage = computed(() => {
       return i18n.t('login.error.notRegistered');
     case 2:
       return i18n.t('login.error.providerError');
-    case 3:
-      return i18n.t('login.error.wrongPassword');
-    case 4:
-      return i18n.t('login.error.userNotFound');
     case 5:
       return i18n.t('login.error.userAbort');
-    case 6:
-      return i18n.t('login.error.accountExists');
     default:
       return null;
   }
 });
-
-async function loginWithProvider(provider) {
-  showForm.value = false;
-  await signInWithProvider(provider);
-}
 </script>
 
 <template>
@@ -56,81 +47,25 @@ async function loginWithProvider(provider) {
     </div>
 
     <pkt-alert v-else-if="authenticationError" skin="error" closeAlert class="mb-size-32">
-      <div>
-        {{ authenticationErrorMessage }}
-
-        <RouterLink v-if="authenticationError === 1" :to="{ name: 'RequestAccess' }">
-          {{ $t('login.requestAccess') }}
-        </RouterLink>
-      </div>
+      <div>{{ authenticationErrorMessage }}</div>
     </pkt-alert>
-
-    <FormSection v-if="showForm" class="login__form">
-      <FormComponent
-        input-type="input"
-        name="email"
-        :label="$t('login.email')"
-        rules="required|email"
-        type="email"
-      />
-
-      <FormComponent
-        input-type="input"
-        name="password"
-        :label="$t('login.password')"
-        rules="required"
-        type="password"
-      />
-
-      <template #actions="{ submit, disabled }">
-        <BtnSave
-          variant="label-only"
-          :disabled="disabled || isAuthenticating"
-          :text="$t('login.login')"
-          @click="submit(({ email, password }) => signInWithEmail(email, password))"
-        />
-      </template>
-    </FormSection>
 
     <div
       v-if="!isAuthenticating || authenticationError !== null"
       class="login__providers"
     >
       <pkt-button
-        v-if="authenticationProviders.includes('microsoft')"
+        v-if="microsoftEnabled"
         full-width
         size="small"
-        @click="loginWithProvider(loginProviderMS)"
+        @click="signInWithProvider(loginProviderMS)"
       >
         <span>{{ $t('login.microsoft') }}</span>
       </pkt-button>
 
-      <pkt-button
-        v-if="authenticationProviders.includes('google')"
-        full-width
-        size="small"
-        @click="loginWithProvider(loginProviderGoogle)"
-      >
-        <span>{{ $t('login.google') }}</span>
-      </pkt-button>
-
-      <pkt-button
-        v-if="authenticationProviders.includes('email')"
-        full-width
-        size="small"
-        skin="secondary"
-        @click="showForm = true"
-      >
-        <span>{{ $t('login.loginWithUsername') }}</span>
-      </pkt-button>
-
-      <div class="login__sep">{{ $t('general.or') }}</div>
-
-      <RouterLink :to="{ name: 'RequestAccess' }">
-        <pkt-button full-width skin="secondary" size="small">
-          <span>{{ $t('login.requestAccess') }}</span>
-        </pkt-button>
-      </RouterLink>
+      <pkt-alert v-else skin="warning">
+        <div>{{ $t('login.error.notConfigured') }}</div>
+      </pkt-alert>
     </div>
 
     <template #footer>
@@ -153,27 +88,11 @@ async function loginWithProvider(provider) {
   }
 }
 
-.login__form {
-  padding-bottom: 2rem;
-  border-bottom: 2px solid var(--color-grayscale-10);
-}
-
 .login__providers {
   display: flex;
   flex-direction: column;
   gap: 0.5rem 0.5rem;
   margin-top: 2rem;
-
-  a {
-    text-decoration: none;
-  }
-}
-
-.login__sep {
-  padding: 0.5rem 0;
-  font-style: italic;
-  color: var(--pkt-color-grays-gray-500);
-  text-align: center;
 }
 
 .login__loading {

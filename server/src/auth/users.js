@@ -72,7 +72,9 @@ export async function actorFromRequest(request) {
     return request._actor;
   }
   const session = sessionFromCookieHeader(request.headers.cookie);
-  if (!session?.email) {
+  // Microsoft sign-in is the only login. Sessions from the former email +
+  // password login are no longer accepted.
+  if (!session?.email || session.provider !== 'oidc') {
     request._actor = null;
     return null;
   }

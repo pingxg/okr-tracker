@@ -212,8 +212,9 @@ export async function canWrite(actor, change, ctx) {
 
   switch (pattern) {
     case 'requestAccess':
-      // Anyone may request access, including people who are not signed in.
-      return true;
+      // The request-access form is gone (Microsoft sign-in creates users);
+      // only super admins may still tidy up old requests.
+      return superAdmin;
 
     case 'users': {
       const isSelf = idOf(path) === actor?.email;

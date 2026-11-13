@@ -62,11 +62,11 @@
       },
       "keyFigure": {
         "label": "关键数据",
-        "description": "该指标对团队和/或部门很重要。如果指标属于某个产品，也会作为上级部门的关键数据显示。"
+        "description": "该指标对团队和/或部门很重要。如果指标属于某个团队，也会作为上级部门的关键数据显示。"
       },
       "resultIndicator": {
         "label": "成果指标",
-        "description": "该指标被视为衡量目标达成情况的重要指标。如果指标属于某个产品，也会作为上级部门的成果指标显示。"
+        "description": "该指标被视为衡量目标达成情况的重要指标。如果指标属于某个团队，也会作为上级部门的成果指标显示。"
       }
     },
     "help": {
@@ -165,7 +165,7 @@
     "createdBy": "创建人",
     "lastUpdate": "更新于",
     "details": "详情",
-    "products": "产品",
+    "products": "团队",
     "organizations": "组织",
     "departments": "部门",
     "teamMembers": "团队成员",
@@ -213,7 +213,7 @@
     "members": "成员",
     "aboutOrganization": "关于组织",
     "aboutDepartment": "关于部门",
-    "aboutProduct": "关于产品",
+    "aboutProduct": "关于团队",
     "organizationChildren": "组织下的部门",
     "departmentChildren": "部门下的团队"
   },
@@ -224,7 +224,7 @@
     "remove": "移除",
     "editNotes": "修改备注",
     "addOrganization": "添加组织",
-    "addProduct": "添加产品",
+    "addProduct": "添加团队",
     "addDepartment": "添加部门",
     "acceptRequest": "授予访问权限",
     "rejectRequest": "删除申请",
@@ -259,29 +259,20 @@
   },
   "login": {
     "login": "登录",
-    "requestAccess": "申请访问",
-    "requestButton": "发送申请",
-    "backToLogin": "返回登录",
     "microsoft": "使用 Microsoft 登录",
-    "google": "使用 Google 登录",
-    "email": "邮箱",
-    "password": "密码",
     "loading": "正在登录，请稍候……",
     "error": {
-      "notRegistered": "你的账号尚未注册。",
+      "notRegistered": "你的账号尚未开通，请联系系统管理员。",
       "providerError": "登录失败。如果问题持续存在，请联系系统管理员。",
-      "wrongPassword": "密码错误。",
-      "userNotFound": "找不到该用户。",
       "userAbort": "登录已取消，请重试。",
-      "accountExists": "该账号已存在，但使用的是其他登录方式。"
-    },
-    "loginWithUsername": "使用用户名登录"
+      "notConfigured": "尚未配置 Microsoft 365 登录，请联系系统管理员。"
+    }
   },
   "toaster": {
     "welcome": "欢迎，{user}",
     "add": {
       "users": "已添加用户 | 已添加 {count} 位用户",
-      "product": "已创建新产品",
+      "product": "已创建新团队",
       "objective": "已为 {period} 创建目标",
       "department": "已创建新部门",
       "keyResult": "已创建新的关键结果",
@@ -312,7 +303,7 @@
       "create": "无法创建{document}",
       "department": "无法创建部门",
       "organization": "无法创建组织",
-      "product": "无法创建产品",
+      "product": "无法创建团队",
       "users": "无法添加用户 | 无法添加用户",
       "user": "无法删除用户 {user}",
       "email": "邮箱地址无效",
@@ -448,9 +439,9 @@
       "search": "在 {count} 个组织中搜索"
     },
     "product": {
-      "create": "创建新产品",
+      "create": "创建新团队",
       "parentDepartment": "所属部门",
-      "search": "在 {count} 个产品中搜索"
+      "search": "在 {count} 个团队中搜索"
     },
     "objects": {
       "showArchived": "查看已归档的对象"
@@ -497,9 +488,6 @@
     "keyResultFor": "“{name}”的关键结果",
     "objectivesFor": "目标："
   },
-  "accessRequests": {
-    "heading": "访问申请"
-  },
   "empty": {
     "noKeyResultProgress": "这个关键结果还没有记录的数值。",
     "noKPIProgress": "这个指标还没有记录的数值。",
@@ -527,7 +515,7 @@
       "keyResult": "该关键结果已归档，不再显示在关键结果列表中。",
       "organization": "该组织已归档，不再显示。",
       "department": "该部门已归档，不再显示。",
-      "product": "该产品已归档，不再显示。"
+      "product": "该团队已归档，不再显示。"
     },
     "restoreText": "如果还需要，可以随时恢复。"
   },
@@ -556,7 +544,7 @@
     "hasSuperAdmin": "是 OKR-tracker 的全站管理员",
     "hasAdmin": "拥有部分组织的管理权限",
     "myProducts": "我的归属",
-    "products": "产品",
+    "products": "团队",
     "position": {
       "groups": {
         "developers": "开发",

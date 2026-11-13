@@ -174,10 +174,14 @@ test('server-managed collections reject client writes', async () => {
   }
 });
 
-test('access requests can be created without signing in', async () => {
+test('access requests can no longer be created by people who are not signed in', async () => {
   assert.equal(
     await write(null, 'requestAccess/a@x.fi', null, { email: 'a@x.fi' }),
-    true
+    false
+  );
+  assert.equal(
+    await write(users.member, 'requestAccess/a@x.fi', null, { email: 'a@x.fi' }),
+    false
   );
 });
 

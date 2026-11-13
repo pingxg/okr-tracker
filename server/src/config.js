@@ -42,10 +42,6 @@ const config = {
     scopes: env.OIDC_SCOPES || 'openid profile email',
   },
 
-  // Optional email + password login for local development and test
-  // environments. Disabled when DEV_LOGIN_PASSWORD is empty.
-  devLoginPassword: env.DEV_LOGIN_PASSWORD || '',
-
   // Create a tracker user automatically on first SSO login (spec §3). Only
   // safe when the OIDC app is restricted to your own tenant.
   autoCreateUsers: bool(env.AUTO_CREATE_USERS, true),

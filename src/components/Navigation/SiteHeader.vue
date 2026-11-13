@@ -22,7 +22,7 @@ const { user, hasEditRights } = storeToRefs(useAuthStore());
 const { objectives, isLoading: objectivesIsLoading } = storeToRefs(useOkrsStore());
 const { kpis, isLoading: kpisIsLoading } = storeToRefs(useKpisStore());
 
-const siteMenuEnabled = computed(() => !['Login', 'RequestAccess'].includes(route.name));
+const siteMenuEnabled = computed(() => route.name !== 'Login');
 
 const siteMenuLabel = computed(() => {
   const defaultLabel = i18n.t('general.appName') || 'OKR Tracker';

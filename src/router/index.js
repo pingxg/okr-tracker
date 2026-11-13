@@ -16,7 +16,6 @@ import ItemOKRs from '@/views/Item/ItemOKRs.vue';
 import ItemWrapper from '@/views/Item/ItemWrapper.vue';
 import Login from '@/views/Login.vue';
 import NotFound from '@/views/NotFound.vue';
-import RequestAccess from '@/views/RequestAccess.vue';
 
 const routes = [
   {
@@ -33,12 +32,6 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: Login,
-    meta: { requiresAuth: false },
-  },
-  {
-    path: '/request-access',
-    name: 'RequestAccess',
-    component: RequestAccess,
     meta: { requiresAuth: false },
   },
   {

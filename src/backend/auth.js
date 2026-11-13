@@ -2,9 +2,8 @@
  * Sign-in for the Node backend, replacing Firebase Auth.
  *
  * The server owns the session (httpOnly cookie). The browser only learns who
- * is signed in from GET /api/v1/auth/me. Microsoft (Entra ID) sign-in is a
- * full-page redirect handled by the server; email + password is only
- * available when the server enables it for development and test.
+ * is signed in from GET /api/v1/auth/me. Microsoft (Entra ID) sign-in, the
+ * only login method, is a full-page redirect handled by the server.
  */
 import { ref } from 'vue';
 import { request, setLiveUpdates } from './client';
@@ -12,8 +11,8 @@ import { request, setLiveUpdates } from './client';
 /** Reactive current identity (null when signed out). */
 export const authUser = ref(null);
 
-/** Login methods the server has enabled: { microsoft, email } */
-export const authProviders = ref({ microsoft: false, email: false });
+/** Login methods the server has enabled: { microsoft } */
+export const authProviders = ref({ microsoft: false });
 
 const listeners = new Set();
 
@@ -86,12 +85,6 @@ export class OAuthProvider {
   setCustomParameters() {}
 }
 
-export class GoogleAuthProvider extends OAuthProvider {
-  constructor() {
-    super('google.com');
-  }
-}
-
 /**
  * Same name as the Firebase function so the auth store is unchanged. A popup
  * is not needed: the browser is sent to the server, which redirects to Entra
@@ -106,21 +99,4 @@ export function signInWithPopup(_auth, provider) {
   window.location.assign(`/api/v1/auth/login?redirect=${encodeURIComponent(redirect)}`);
   // Never resolves: the page is navigating away.
   return new Promise(() => {});
-}
-
-export async function signInWithEmailAndPassword(_auth, email, password) {
-  try {
-    await request('/auth/dev-login', { body: { email, password } });
-  } catch (error) {
-    if (error.status === 401) {
-      throw new AuthError('auth/wrong-password');
-    }
-    if (error.status === 404) {
-      throw new AuthError('auth/operation-not-allowed');
-    }
-    throw new AuthError('auth/internal-error', error.message);
-  }
-  const me = await request('/auth/me', { method: 'GET' });
-  setUser(me.user);
-  return { user: auth.currentUser };
 }

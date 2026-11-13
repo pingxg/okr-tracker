@@ -1,10 +1,9 @@
 /**
- * Login routes.
+ * Login routes. Microsoft (Entra ID, OpenID Connect) is the only way to sign in.
  *
- *   GET  /api/v1/auth/providers   which login methods are enabled
+ *   GET  /api/v1/auth/providers   whether Microsoft sign-in is configured
  *   GET  /api/v1/auth/login       start OpenID Connect login (Entra ID)
  *   GET  /api/v1/auth/callback    OIDC redirect target
- *   POST /api/v1/auth/dev-login   email + shared password (dev/test only)
  *   POST /api/v1/auth/logout
  *   GET  /api/v1/auth/me          current identity
  */
@@ -53,7 +52,6 @@ function safeRedirect(value) {
 export default async function authRoutes(fastify) {
   fastify.get('/api/v1/auth/providers', async () => ({
     microsoft: oidcEnabled(),
-    email: Boolean(config.devLoginPassword),
   }));
 
   fastify.get('/api/v1/auth/login', async (request, reply) => {
@@ -134,33 +132,6 @@ export default async function authRoutes(fastify) {
     // The SPA decides what happens next (it shows "not registered" when the
     // person has no tracker user, exactly as before).
     return reply.redirect(`/login?redirectFrom=${encodeURIComponent(pending.redirect)}`);
-  });
-
-  fastify.post('/api/v1/auth/dev-login', async (request, reply) => {
-    if (!config.devLoginPassword) {
-      return reply
-        .code(404)
-        .send({ message: 'Email login is disabled', code: 'auth/operation-not-allowed' });
-    }
-    const { email, password } = request.body || {};
-    if (typeof email !== 'string' || !email.includes('@')) {
-      return reply
-        .code(400)
-        .send({ message: 'Invalid email', code: 'auth/invalid-email' });
-    }
-    if (password !== config.devLoginPassword) {
-      return reply
-        .code(401)
-        .send({ message: 'Wrong password', code: 'auth/wrong-password' });
-    }
-    const normalized = email.toLowerCase();
-    await ensureTrackerUser({ email: normalized, name: null, oid: null });
-    reply.setCookie(
-      SESSION_COOKIE,
-      createSession({ email: normalized, provider: 'password' }),
-      cookieOptions(config.sessionMaxAgeHours * 3600)
-    );
-    return { email: normalized };
   });
 
   fastify.post('/api/v1/auth/logout', async (request, reply) => {

@@ -70,11 +70,8 @@ export default async function docRoutes(fastify) {
         error.statusCode = 400;
         throw error;
       }
-      // Only access requests may be written without a tracker user.
-      const anonymousAllowed = ops.every((op) =>
-        String(op.path || '').startsWith('requestAccess/')
-      );
-      if (!actor?.doc && !anonymousAllowed) {
+      // Only signed-in tracker users may write.
+      if (!actor?.doc) {
         throw new PolicyError();
       }
 

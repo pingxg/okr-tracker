@@ -55,20 +55,24 @@ docker compose up --build
 docker compose exec app node scripts/seed.js   # optional demo data
 ```
 
-Open http://localhost:3000 and sign in with `admin@example.com` and password `okr-dev`.
+Set the `OIDC_*` variables first (see below), then open http://localhost:3000 and sign in with
+Microsoft.
 
 ### Without Docker
 
 ```bash
 npm install
 npm --prefix server install
-cp server/.env.example server/.env        # set DATABASE_URL and DEV_LOGIN_PASSWORD
-npm --prefix server run seed              # optional demo data (admin@example.com)
+# create server/.env with DATABASE_URL, PUBLIC_URL, OIDC_* and INITIAL_ADMIN_EMAIL
+npm --prefix server run seed              # optional demo data
 npm run dev:server                        # API on http://localhost:3000
 npm run dev                               # frontend on http://localhost:8080, proxies /api
 ```
 
 ## Sign-in with Microsoft Entra ID
+
+Microsoft 365 (Entra ID) is the only way to sign in; there is no username/password login and no
+request-access form.
 
 1. Register an application in Entra ID (single tenant).
 2. Add the redirect URI `<PUBLIC_URL>/api/v1/auth/callback` (type: Web) and create a client secret.
@@ -77,11 +81,8 @@ npm run dev                               # frontend on http://localhost:8080, p
 4. Set `INITIAL_ADMIN_EMAIL` to the first super admin.
 
 With `AUTO_CREATE_USERS=true` (default) everyone who can sign in to the tenant gets a user with no
-roles on first login. Set it to `false` to require access requests or the `domainWhitelist`
-collection instead. Any other OpenID Connect provider works the same way.
-
-`DEV_LOGIN_PASSWORD` enables email + shared password sign-in for development and test
-environments; leave it empty in production.
+roles on first login. Set it to `false` to let in only users an admin has added, or whose email
+domain is in the `domainWhitelist` collection.
 
 ## Deploy to Render
 

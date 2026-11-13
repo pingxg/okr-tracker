@@ -4,11 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toast-notification';
 import { useCurrentUser } from '@/backend/vuefire';
-import {
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  authProviders,
-} from '@/backend/auth';
+import { signInWithPopup, authProviders } from '@/backend/auth';
 import { auth } from '@/config/backend';
 import User from '@/db/User';
 import defaultPreferences from '@/db/User/defaultPreferences';
@@ -32,7 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = computed(() => trackerUser.user.value);
   const isLoggedIn = computed(() => Boolean(firbaseUser.value && trackerUser.user.value));
 
-  // Login methods enabled on the server (Microsoft Entra ID, email for dev/test)
+  // Login methods enabled on the server (only Microsoft Entra ID)
   const authenticationProviders = computed(() =>
     Object.entries(authProviders.value)
       .filter(([, enabled]) => enabled)
@@ -209,14 +205,8 @@ export const useAuthStore = defineStore('auth', () => {
         );
       }
     } catch (error) {
-      if (error.code === 'auth/wrong-password') {
-        authenticationError.value = 3;
-      } else if (error.code === 'auth/user-not-found') {
-        authenticationError.value = 4;
-      } else if (error.code === 'auth/popup-closed-by-user') {
+      if (error.code === 'auth/popup-closed-by-user') {
         authenticationError.value = 5;
-      } else if (error.code === 'auth/account-exists-with-different-credential') {
-        authenticationError.value = 6;
       } else {
         authenticationError.value = 2;
       }
@@ -227,10 +217,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function signInWithProvider(provider) {
     await signIn(signInWithPopup(auth, provider));
-  }
-
-  async function signInWithEmail(email, password) {
-    await signIn(signInWithEmailAndPassword(auth, email, password));
   }
 
   async function signOut() {
@@ -264,7 +250,6 @@ export const useAuthStore = defineStore('auth', () => {
     home,
     language,
     signInWithProvider,
-    signInWithEmail,
     signOut,
   };
 });

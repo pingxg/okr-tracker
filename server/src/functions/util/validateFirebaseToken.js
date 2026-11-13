@@ -8,7 +8,8 @@ import { sessionFromCookieHeader } from '../../auth/session.js';
 const validateFirebaseIdToken = async (req, res, next) => {
   const session = sessionFromCookieHeader(req.headers.cookie);
 
-  if (!session?.email) {
+  // Only Microsoft sign-in sessions; see actorFromRequest.
+  if (!session?.email || session.provider !== 'oidc') {
     return res.status(403).send(JSON.stringify({ message: 'Unauthorized' }));
   }
 

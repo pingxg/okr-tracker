@@ -62,11 +62,11 @@
       },
       "keyFigure": {
         "label": "Key figure",
-        "description": "The measurement is considered important to the team and/or department. If the measurement is registered for a product, it is also displayed as a key figure for the parent department."
+        "description": "The measurement is considered important to the team and/or department. If the measurement is registered for a team, it is also displayed as a key figure for the parent department."
       },
       "resultIndicator": {
         "label": "Result indicator",
-        "description": "The measurement is considered especially important as an indicator of achievement. If the measurement is registered for a product, it is also displayed as a result indicator for the parent department."
+        "description": "The measurement is considered especially important as an indicator of achievement. If the measurement is registered for a team, it is also displayed as a result indicator for the parent department."
       }
     },
     "help": {
@@ -165,7 +165,7 @@
     "createdBy": "Created by",
     "lastUpdate": "Updated",
     "details": "Details",
-    "products": "Products",
+    "products": "Teams",
     "organizations": "Organizations",
     "departments": "Departments",
     "teamMembers": "Team members",
@@ -213,7 +213,7 @@
     "members": "Members",
     "aboutOrganization": "About the organization",
     "aboutDepartment": "About the department",
-    "aboutProduct": "About the product",
+    "aboutProduct": "About the team",
     "organizationChildren": "Departments in the organization",
     "departmentChildren": "Teams in the department"
   },
@@ -224,7 +224,7 @@
     "remove": "Remove",
     "editNotes": "Change notes",
     "addOrganization": "Add organization",
-    "addProduct": "Add product",
+    "addProduct": "Add team",
     "addDepartment": "Add department",
     "acceptRequest": "Grant access",
     "rejectRequest": "Delete request",
@@ -259,29 +259,20 @@
   },
   "login": {
     "login": "Sign in",
-    "requestAccess": "Request access",
-    "requestButton": "Send request",
-    "backToLogin": "Back to login",
     "microsoft": "Sign in with Microsoft",
-    "google": "Sign in with Google",
-    "email": "Email",
-    "password": "Password",
     "loading": "We are signing you in, please wait...",
     "error": {
-      "notRegistered": "Your account is not registered.",
+      "notRegistered": "Your account has not been set up yet. Please contact a system administrator.",
       "providerError": "Could not sign in. Please contact system administrator if the error persists.",
-      "wrongPassword": "Wrong password.",
-      "userNotFound": "Could not find user.",
       "userAbort": "Login request aborted. Please try again.",
-      "accountExists": "The account already exists, but with a different credential."
-    },
-    "loginWithUsername": "Sign in with username"
+      "notConfigured": "Microsoft 365 sign-in is not configured yet. Please contact a system administrator."
+    }
   },
   "toaster": {
     "welcome": "Welcome {user}",
     "add": {
       "users": "Add user | {count} users",
-      "product": "Created new product",
+      "product": "Created new team",
       "objective": "Created an objective for {period}",
       "department": "Created new department",
       "keyResult": "Created new key result",
@@ -312,7 +303,7 @@
       "create": "Could not create {document}",
       "department": "Could not create department",
       "organization": "Could not create organization",
-      "product": "Could not create product",
+      "product": "Could not create team",
       "users": "Could not add user | users",
       "user": "Could not delete user {user}",
       "email": "Invalid email address",
@@ -448,9 +439,9 @@
       "search": "Search {count} organizations"
     },
     "product": {
-      "create": "Create new product",
+      "create": "Create new team",
       "parentDepartment": "Related department",
-      "search": "Search {count} products"
+      "search": "Search {count} teams"
     },
     "objects": {
       "showArchived": "View archived objects"
@@ -497,9 +488,6 @@
     "keyResultFor": "Key results for “{name}”",
     "objectivesFor": "Objectives for"
   },
-  "accessRequests": {
-    "heading": "Access requests"
-  },
   "empty": {
     "noKeyResultProgress": "This key result has no registered values.",
     "noKPIProgress": "This measurement has no registered values.",
@@ -527,7 +515,7 @@
       "keyResult": "This key result is archived and is no longer shown in the list of key results.",
       "organization": "This organization is archived and no longer visible.",
       "department": "This department is archived and no longer visible.",
-      "product": "This product is archived and no longer visible."
+      "product": "This team is archived and no longer visible."
     },
     "restoreText": "If you miss it, just restore it."
   },
@@ -556,7 +544,7 @@
     "hasSuperAdmin": "Is sitewide administrator for the OKR-tracker",
     "hasAdmin": "Has admin rights for some organizations",
     "myProducts": "My affiliations",
-    "products": "Products",
+    "products": "Teams",
     "position": {
       "groups": {
         "developers": "Developers",

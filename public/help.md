@@ -2,10 +2,9 @@
 
 ### I can't sign in, what do I do?
 
-Only approved users have access to the system. If the email address you are
-signing in with has not been added as a user, you won't be able to sign in. Ask
-a system administrator for access, or request access by sending your email
-address through [this form](/request-access).
+Sign in with your Microsoft 365 work account; there is no separate username or
+password. Your account is created the first time you sign in, without any
+admin rights. If you still cannot sign in, ask a system administrator.
 
 ### … but I have already been added!
 
@@ -17,8 +16,8 @@ Then something is probably wrong in the system. Contact a system administrator.
 
 ### I can't add or change objectives and key results
 
-You must be a member of a product to make changes to it. Other registered team
-members can add you to the product if you should have access.
+You must be a member of a team to make changes to it. Other registered team
+members can add you to the team if you should have access.
 
 ### … but the team has no members!
 
@@ -26,7 +25,7 @@ Contact a system administrator to be added as a member of a team.
 
 ### Adding team members
 
-On the product page, click «Admin» in the top menu, then enter a name or email
+On the team page, click «Admin» in the top menu, then enter a name or email
 address in the «Team members» field.
 
 If the person you want to add is not in the list, a system administrator must
@@ -119,7 +118,7 @@ for an organization.
 
 ## Departments
 
-Departments contain [products](#products), [objectives](#objectives) and
+Departments contain [teams](#teams), [objectives](#objectives) and
 [key results](#key-results).
 
 ### Creating a new department
@@ -151,36 +150,36 @@ Archived departments can be restored by system administrators from the
 
 ---
 
-## Products
+## Teams
 
-Products belong to a [department](#departments) and contain
+Teams belong to a [department](#departments) and contain
 [objectives](#objectives) and [key results](#key-results).
 
-### Creating a new product
+### Creating a new team
 
-Administrators can create new products from the [admin panel](/admin).
+Administrators can create new teams from the [admin panel](/admin).
 
-- In the «Products» column, click `Add product`. A department must exist before
-  you can create a product.
+- In the «Teams» column, click `Add team`. A department must exist before
+  you can create a team.
 - Enter a name and mission statement.
 - Choose the department it belongs to and its members.
 - Click `Create`.
 
-### Archiving a product
+### Archiving a team
 
-Administrators can archive existing products from the [admin panel](/admin).
-Archived products can be restored.
+Administrators can archive existing teams from the [admin panel](/admin).
+Archived teams can be restored.
 
-- Select the product in the menu.
+- Select the team in the menu.
 - Click `Delete`.
 
-### Restoring an archived product
+### Restoring an archived team
 
-Archived products can be restored by system administrators from the
+Archived teams can be restored by system administrators from the
 [admin panel](/admin).
 
 - Tick «View archived objects» at the bottom of the page.
-- Select the archived product to restore.
+- Select the archived team to restore.
 - Click `Restore`.
 
 ---
@@ -192,7 +191,7 @@ completely concrete.
 
 ### Creating a new objective
 
-- Go to the product, department or organization you want to create an objective
+- Go to the team, department or organization you want to create an objective
   for.
 - Click the `+ Objective` button at the top right.
 - Enter a name, description and period.
@@ -260,7 +259,7 @@ progress is set to 100 %.
 
 ### Adding a new measurement
 
-- Go to your product, department or organization.
+- Go to your team, department or organization.
 - Open the «Measurements» tab.
 - Click «Create a measurement».
 - Fill in the form and click «Save».
