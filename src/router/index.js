@@ -29,6 +29,11 @@ const routes = [
     component: () => import('@/views/Api.vue'),
   },
   {
+    path: '/ai-assistants',
+    name: 'AiAssistants',
+    component: () => import('@/views/AiAssistants.vue'),
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Login,

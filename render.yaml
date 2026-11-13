@@ -1,16 +1,16 @@
-# Render Blueprint (spec §13). Frankfurt region keeps data in the EU.
-# Secrets marked `sync: false` are entered in the Render dashboard.
-# Backups: Render Postgres has point-in-time recovery. For the weekly external
-# copy (spec §13) run `node scripts/backup.js` as a Cron Job once an upload
-# target is chosen.
-databases:
-  - name: okr-db
-    region: frankfurt
-    plan: basic-1gb
-    databaseName: okr
-    user: okr
-    postgresMajorVersion: '16'
-
+# Render Blueprint. Frankfurt region keeps data in the EU and next to the
+# existing Postgres instance.
+#
+# The app uses the existing database "okr" on our Render Postgres instance
+# (shared with Metabase and Dagster), so no database is created here. Paste
+# its *internal* connection string as DATABASE_URL (same region, no TLS
+# needed). Secrets marked `sync: false` are entered in the Render dashboard.
+#
+# After the first deploy:
+#   - PUBLIC_URL = https://<service>.onrender.com (or your own domain)
+#   - add <PUBLIC_URL>/api/v1/auth/callback as a Web redirect URI in the Entra
+#     app registration
+#   - the MCP address for AI assistants is <PUBLIC_URL>/mcp
 services:
   - type: web
     name: okr-app
@@ -21,9 +21,10 @@ services:
     autoDeploy: true
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: okr-db
-          property: connectionString
+        sync: false
+      # false for the internal connection string; true for the external one
+      - key: DATABASE_SSL
+        value: 'false'
       - key: NODE_ENV
         value: production
       - key: SESSION_SECRET
@@ -40,4 +41,3 @@ services:
         sync: false
       - key: AUTO_CREATE_USERS
         value: 'true'
-

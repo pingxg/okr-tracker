@@ -86,9 +86,29 @@ domain is in the `domainWhitelist` collection.
 
 ## Deploy to Render
 
-`render.yaml` defines a Postgres database and one web service (Docker) in Frankfurt. Create a
-Blueprint from the repository, then fill in `PUBLIC_URL`, the `OIDC_*` variables and
-`INITIAL_ADMIN_EMAIL`. Migrations run automatically on start.
+`render.yaml` defines one web service (Docker) in Frankfurt that uses an existing Postgres
+database. Create a Blueprint from the repository, then fill in `DATABASE_URL` (internal
+connection string), `PUBLIC_URL`, the `OIDC_*` variables and `INITIAL_ADMIN_EMAIL`, and add
+`<PUBLIC_URL>/api/v1/auth/callback` as a redirect URI in Entra. Migrations run automatically on
+start.
+
+## AI assistants (MCP)
+
+`<PUBLIC_URL>/mcp` is a remote MCP server (Streamable HTTP) that any MCP-capable assistant can
+add. The assistant acts as the signed-in person: every read and write goes through the same
+policy as the web app (`server/src/policy/rules.js`), so it can change exactly what that person
+can change.
+
+- **Sign-in**: OAuth 2.1 with PKCE and dynamic client registration. The person signs in with
+  Microsoft 365 (organization members only) and allows the assistant on a consent page.
+- **Personal tokens**: for tools that only take a header, people create tokens on the
+  "AI assistants" page (`/ai-assistants`) and send `Authorization: Bearer <token>`.
+- Tokens are stored hashed (`auth_tokens`), expire, and can be revoked on that page; connected
+  assistants can be disconnected there too.
+- Tools: `get_my_permissions`, `list_structure`, `get_okrs`, `get_key_result`,
+  `get_measurements`, `get_measurement`, `record_key_result_progress`,
+  `record_measurement_value`, `create_objective`, `update_objective`, `create_key_result`,
+  `update_key_result`, `create_measurement`, `update_measurement`, `set_archived`.
 
 ## Tests
 

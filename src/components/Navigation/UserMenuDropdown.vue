@@ -26,6 +26,12 @@ const footerLinks = computed(() => {
   }
 
   links.push({
+    label: i18n.t('ai.menu'),
+    icon: 'brain-signal',
+    route: { name: 'AiAssistants' },
+  });
+
+  links.push({
     label: i18n.t('general.api'),
     icon: 'document-code',
     route: { name: 'Api' },

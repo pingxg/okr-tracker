@@ -708,5 +708,42 @@
       "heading": "No measurements assigned to you",
       "body": "No measurements here are assigned to you. Choose “Show all” to see every measurement."
     }
+  },
+  "ai": {
+    "menu": "AI assistants",
+    "title": "AI assistants (MCP)",
+    "intro": "Connect OKR to Claude, ChatGPT, Copilot, Cursor or any assistant that supports MCP, so it can look up objectives, key results and measurements, record progress, or create and change them for you.",
+    "rights": "An assistant acts as you, with exactly your rights in the web app: it can change what you can change, and nothing else. The server checks every change with the same rules.",
+    "revoke": "Revoke",
+    "disconnect": "Disconnect",
+    "revoked": "Revoked",
+    "connect": {
+      "heading": "Connection address",
+      "url": "MCP address",
+      "oauth": "Claude, ChatGPT and similar: add a custom connector with the address above, then sign in with your Microsoft 365 work account and choose “Allow”.",
+      "token": "Claude Desktop, Cursor and other tools that take a header: create a personal token below and send it as Authorization: Bearer followed by the token."
+    },
+    "tokens": {
+      "heading": "Personal tokens",
+      "help": "For tools that take a header. A token works like your account: keep it safe and revoke it when you no longer need it.",
+      "name": "Name",
+      "namePlaceholder": "e.g. My Claude Desktop",
+      "expires": "Valid for",
+      "days": "{days} days",
+      "create": "Create token",
+      "createError": "Could not create the token",
+      "token": "Token",
+      "showOnce": "The token for “{name}” is shown only this once. Copy it now.",
+      "done": "I have saved it",
+      "meta": "Created {created} · last used {used} · expires {expires}",
+      "revokeHelp": "Tools using this token lose access immediately.",
+      "empty": "No personal tokens yet."
+    },
+    "assistants": {
+      "heading": "Connected assistants",
+      "meta": "Connected {created} · last used {used}",
+      "disconnectHelp": "The assistant loses access immediately and has to be allowed again.",
+      "empty": "No assistants connected with Microsoft sign-in yet."
+    }
   }
 }

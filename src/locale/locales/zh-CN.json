@@ -708,5 +708,42 @@
       "heading": "没有指派给你的指标",
       "body": "这里目前没有指标指派给你。点“显示全部”查看所有指标。"
     }
+  },
+  "ai": {
+    "menu": "AI 助理",
+    "title": "AI 助理（MCP）",
+    "intro": "把 OKR 接入 Claude、ChatGPT、Copilot、Cursor 等支持 MCP 的 AI 助理，让它帮你查询目标、关键结果和指标，录入进度，或新建和修改内容。",
+    "rights": "AI 助理以你的身份操作，权限和你在网页上完全一样：你能改的它才能改，你不能改的它也改不了。每一次修改都由服务器按同样的规则检查。",
+    "revoke": "撤销",
+    "disconnect": "断开",
+    "revoked": "已撤销",
+    "connect": {
+      "heading": "连接地址",
+      "url": "MCP 地址",
+      "oauth": "Claude、ChatGPT 等：在“连接器 / Connectors”里添加自定义连接器，填入上面的地址，然后按提示用公司的 Microsoft 365 账号登录并点“允许”。",
+      "token": "Claude Desktop、Cursor 等只能填请求头的工具：在下面创建一个个人令牌，请求头填写 Authorization: Bearer 加上你的令牌。"
+    },
+    "tokens": {
+      "heading": "个人令牌",
+      "help": "给只能填写请求头的工具使用。令牌等同于你的账号，请妥善保管，不用时及时撤销。",
+      "name": "名称",
+      "namePlaceholder": "例如：我的 Claude Desktop",
+      "expires": "有效期",
+      "days": "{days} 天",
+      "create": "创建令牌",
+      "createError": "无法创建令牌",
+      "token": "令牌",
+      "showOnce": "“{name}”的令牌只显示这一次，请现在复制保存。",
+      "done": "我已保存",
+      "meta": "创建于 {created} · 最近使用 {used} · 到期 {expires}",
+      "revokeHelp": "撤销后，使用这个令牌的工具会立即无法访问。",
+      "empty": "还没有个人令牌。"
+    },
+    "assistants": {
+      "heading": "已连接的 AI 助理",
+      "meta": "连接于 {created} · 最近使用 {used}",
+      "disconnectHelp": "断开后，这个 AI 助理会立即失去访问权限，需要重新登录授权。",
+      "empty": "还没有通过 Microsoft 登录连接的 AI 助理。"
+    }
   }
 }

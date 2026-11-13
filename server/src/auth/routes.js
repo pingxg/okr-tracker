@@ -140,6 +140,11 @@ export default async function authRoutes(fastify) {
       createSession({ email, name, oid, provider: 'oidc' }),
       cookieOptions(config.sessionMaxAgeHours * 3600)
     );
+    // An AI assistant connecting (OAuth) continues on the server's consent
+    // page; everything else goes back into the web app.
+    if (pending.redirect.startsWith('/oauth/authorize')) {
+      return reply.redirect(pending.redirect);
+    }
     // The SPA decides what happens next (it shows "not registered" when the
     // person has no tracker user, exactly as before).
     return reply.redirect(`/login?redirectFrom=${encodeURIComponent(pending.redirect)}`);

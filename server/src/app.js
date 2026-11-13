@@ -11,6 +11,9 @@ import config from './config.js';
 import authRoutes from './auth/routes.js';
 import docRoutes from './routes/docs.js';
 import realtimeRoutes from './routes/realtime.js';
+import tokenRoutes from './auth/tokenRoutes.js';
+import oauthRoutes from './auth/oauth.js';
+import mcpRoutes from './mcp/route.js';
 import { listTriggers } from './store/hooks.js';
 import pool from './db/pool.js';
 
@@ -55,6 +58,10 @@ export async function buildApp({ logger = true } = {}) {
   await fastify.register(authRoutes);
   await fastify.register(docRoutes);
   await fastify.register(realtimeRoutes);
+  // AI assistants: personal tokens, OAuth sign-in and the MCP endpoint.
+  await fastify.register(tokenRoutes);
+  await fastify.register(oauthRoutes);
+  await fastify.register(mcpRoutes);
 
   // Built frontend with SPA fallback.
   if (existsSync(config.staticDir)) {
