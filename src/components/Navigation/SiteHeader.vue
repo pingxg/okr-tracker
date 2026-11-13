@@ -249,8 +249,25 @@ const showToolbar = computed(() => {
   margin-right: 0.5rem;
 }
 
+.site-menu {
+  flex-shrink: 0;
+}
+
 .item-menu {
   flex: 1;
+  // The tabs give way (and scroll sideways if they must) instead of pushing
+  // the user menu off narrow screens.
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  :deep(.nav-menu-item__inner) {
+    white-space: nowrap;
+  }
 
   // Only the first right-hand tab pushes; the others sit next to it.
   &__item--push {
@@ -259,10 +276,28 @@ const showToolbar = computed(() => {
 }
 
 .user-menu {
+  flex-shrink: 0;
   margin-left: auto;
 
   :deep(.nav-menu-item__content) {
     right: 0;
+  }
+}
+
+// Phones: tighter header so logo, tabs and user menu fit on one line.
+@media (max-width: 35.99rem) {
+  .site-logo {
+    height: 1.125rem;
+    margin-right: 0.25rem;
+  }
+
+  .site-navigation__menubar :deep(.nav-menu-item__inner) {
+    gap: 0.25em;
+    padding: 0 0.6em;
+  }
+
+  .user-menu :deep(.nav-menu-item__toggle) {
+    display: none;
   }
 }
 </style>

@@ -89,18 +89,27 @@ function toggle() {
 
   &__header {
     display: flex;
+    // On narrow screens the actions move under the title instead of
+    // squeezing it (and their own labels) into one character per line.
+    flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
 
     h3 {
       margin-bottom: 0;
       color: var(--color-text);
+      white-space: nowrap;
     }
 
     .widget__actions {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.5rem;
       align-items: center;
+
+      :deep(.pkt-btn) {
+        white-space: nowrap;
+      }
 
       :deep(.separator) {
         height: 2rem;

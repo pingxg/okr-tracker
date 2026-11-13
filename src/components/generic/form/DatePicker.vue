@@ -43,6 +43,9 @@ const defaultConfig = {
   mode: 'single',
   dateFormat: 'j M Y',
   allowInput: true,
+  // Same calendar on phones: flatpickr otherwise swaps in the browser's
+  // native date input on mobile devices.
+  disableMobile: true,
 };
 
 const flatPickrInstance = computed(() => datePicker.value?.fp);
