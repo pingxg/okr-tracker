@@ -15,7 +15,10 @@ const { organization } = storeToRefs(activeOrganizationStore);
 
 useHead({
   title: owner.value,
-  titleTemplate: (title) => `${title} | ${i18n.t('general.project')}`,
+  // Pages without a title yet (e.g. the front page before an organization is
+  // chosen) show just the project name, not "undefined | OKR".
+  titleTemplate: (title) =>
+    title ? `${title} | ${i18n.t('general.project')}` : i18n.t('general.project'),
 });
 
 watch(
