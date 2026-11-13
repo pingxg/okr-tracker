@@ -23,7 +23,7 @@ The original project is © 2020 Oslo kommune, MIT licensed (see [LICENCE](LICENC
 Phase 1 keeps the original data model: every Firestore document is a row in the `documents`
 table with the same path and fields (see `server/src/db/migrations/001_documents.sql`).
 Reporting views (`okr_objectives`, `okr_key_results`, …) make the data easy to query from BI
-tools. A relational model is planned for a later phase.
+tools. The functional spec keeps this document model.
 
 ## Architecture
 

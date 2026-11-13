@@ -6,7 +6,8 @@
 --   references  {"__ref": "organizations/abc"}
 --   timestamps  {"__ts": "2026-11-12T10:00:00.000Z"}
 --
--- Phase 2 replaces this with the relational model in the functional spec §14.
+-- The functional spec keeps this document store. Product features are fields
+-- and pages on these collections, not a second relational schema.
 
 CREATE TABLE IF NOT EXISTS documents (
   path        text PRIMARY KEY,
