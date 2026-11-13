@@ -143,6 +143,39 @@ async function objectiveParentIsItemOrItemParent(data, getAfter) {
   return false;
 }
 
+// --- users and items ---------------------------------------------------------------
+
+/** User fields nobody but super admins may change. */
+const USER_LOCKED_FIELDS = ['superAdmin', 'id', 'email'];
+
+/**
+ * Organization admin rights may only change for organizations the actor is
+ * an admin of (super admins are allowed before this is reached).
+ */
+function adminChangeAllowed(actor, beforeList, afterList) {
+  const toSet = (list) => new Set(Array.isArray(list) ? list : []);
+  const before = toSet(beforeList);
+  const after = toSet(afterList);
+  if (afterList !== undefined && afterList !== null && !Array.isArray(afterList)) {
+    return false;
+  }
+  const changed = [
+    ...[...before].filter((id) => !after.has(id)),
+    ...[...after].filter((id) => !before.has(id)),
+  ];
+  const mine = actor.doc?.admin || [];
+  return changed.every((id) => mine.includes(id));
+}
+
+/**
+ * Item fields only admins change: who is a member, where the item sits and
+ * whether it is archived. Members may edit the rest (name, texts, details).
+ */
+const ITEM_MANAGED_FIELDS = ['team', 'organization', 'department', 'archived'];
+
+const changesOnlyContent = (before, after) =>
+  !affectedKeys(before, after).some((key) => ITEM_MANAGED_FIELDS.includes(key));
+
 // --- assignees of key results and measurements ---------------------------------
 //
 // A key result or measurement (KPI) can be assigned to one or more members of
@@ -315,20 +348,33 @@ export async function canWrite(actor, change, ctx) {
       if (!isSignedIn(actor)) {
         return false;
       }
-      // Deliberate deviation from firestore.rules: the original let any
-      // authenticated account create its own user document ("isSelf"), i.e.
-      // self-register. Here only admins create users; new people go through
-      // access requests, the domain whitelist or INITIAL_ADMIN_EMAIL.
+      // Deliberate deviations from firestore.rules:
+      // - only admins create users (no self-registration);
+      // - admin rights are granted by super admins, or by an organization's
+      //   admins for that organization only (the original let anyone edit
+      //   their own `admin` list, and any admin edit anyone's);
+      // - only super admins delete users.
       if (op === 'create') {
-        return isAdmin(actor) && !('superAdmin' in (after || {}));
-      }
-      if (op === 'update') {
         return (
-          (isSelf || isAdmin(actor)) &&
-          !affectedKeys(before, after).includes('superAdmin')
+          isAdmin(actor) &&
+          !after?.superAdmin &&
+          adminChangeAllowed(actor, [], after?.admin)
         );
       }
-      return isSelf || isAdmin(actor);
+      if (op === 'update') {
+        const changed = affectedKeys(before, after);
+        if (USER_LOCKED_FIELDS.some((key) => changed.includes(key))) {
+          return false;
+        }
+        if (
+          changed.includes('admin') &&
+          !(isAdmin(actor) && adminChangeAllowed(actor, before?.admin, after?.admin))
+        ) {
+          return false;
+        }
+        return isSelf || isAdmin(actor);
+      }
+      return false;
     }
 
     case 'organizations':
@@ -338,11 +384,11 @@ export async function canWrite(actor, change, ctx) {
       if (op === 'create' || op === 'delete') {
         return superAdmin;
       }
-      return (
-        superAdmin ||
-        hasRef(after?.team, userPath(actor)) ||
-        isAdminOfNode(actor, after, idOf(path))
-      );
+      if (superAdmin || isAdminOfNode(actor, after, idOf(path))) {
+        return true;
+      }
+      // Members edit the content, not the member list or archive state.
+      return hasRef(before?.team, userPath(actor)) && changesOnlyContent(before, after);
 
     case 'departments':
     case 'products':
@@ -352,11 +398,22 @@ export async function canWrite(actor, change, ctx) {
       if (op === 'delete') {
         return superAdmin;
       }
-      return (
-        superAdmin ||
-        hasRef(after?.team, userPath(actor)) ||
+      if (superAdmin) {
+        return true;
+      }
+      // Only admins of the organization create departments and teams.
+      if (op === 'create') {
+        return isAdminOfNode(actor, after, idOf(path));
+      }
+      // Admins of the organization it is in (and moves to) manage it.
+      if (
+        isAdminOfNode(actor, before, idOf(path)) &&
         isAdminOfNode(actor, after, idOf(path))
-      );
+      ) {
+        return true;
+      }
+      // Members edit the content, not the member list, place or archive state.
+      return hasRef(before?.team, userPath(actor)) && changesOnlyContent(before, after);
 
     case 'keyResults':
     case 'kpis':

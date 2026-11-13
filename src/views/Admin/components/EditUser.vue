@@ -30,8 +30,25 @@ const isCurrentUser = computed(
 const formData = ref(null);
 const isLoading = ref(false);
 
+// Organizations whose admin rights the current user may grant: all for super
+// admins, otherwise only the organizations they are an admin of.
+const manageableOrgs = computed(() =>
+  organizations.value
+    .filter((o) => isSuperAdmin.value || (currentUser.value?.admin || []).includes(o.id))
+    .map(({ id, name }) => ({ id, name }))
+);
+const manageableIds = computed(() => manageableOrgs.value.map((o) => o.id));
+
+// Admin rights in other organizations: shown, kept as they are on save.
+const otherAdminOrgs = computed(() =>
+  (user.value?.admin || [])
+    .filter((oid) => !manageableIds.value.includes(oid))
+    .map((oid) => organizations.value.find((o) => o.id === oid))
+    .filter(Boolean)
+);
+
 watch(
-  user,
+  [user, manageableOrgs],
   () => {
     if (user.value) {
       const { id, displayName, admin, superAdmin } = user.value;
@@ -39,15 +56,9 @@ watch(
       formData.value = {
         id,
         displayName,
-        admin:
-          admin && admin.length
-            ? admin
-                .filter((oid) => organizations.value.map((o) => o.id).includes(oid))
-                .map((oid) => ({
-                  id: oid,
-                  name: organizations.value.find((o) => o.id === oid).name,
-                }))
-            : [],
+        admin: (admin || [])
+          .filter((oid) => manageableIds.value.includes(oid))
+          .map((oid) => manageableOrgs.value.find((o) => o.id === oid)),
         superAdmin: superAdmin || false,
       };
     }
@@ -58,9 +69,15 @@ watch(
 async function update() {
   isLoading.value = true;
   try {
+    const { superAdmin, ...rest } = formData.value;
     await User.update(user.value, {
-      ...formData.value,
-      admin: formData.value.admin.map((org) => org.id),
+      ...rest,
+      admin: [
+        ...otherAdminOrgs.value.map((org) => org.id),
+        ...formData.value.admin.map((org) => org.id),
+      ],
+      // Only super admins grant super admin (the server checks this too).
+      ...(isSuperAdmin.value ? { superAdmin } : {}),
     });
     toast.success(i18n.t('toaster.savedChanges'));
   } catch {
@@ -116,12 +133,21 @@ async function remove() {
         input-type="custom-select"
         select-mode="tags"
         name="admin"
-        :disabled="!isSuperAdmin"
+        :disabled="!manageableOrgs.length"
         :label="$t('general.admin')"
+        :helptext="
+          otherAdminOrgs.length
+            ? $t('admin.users.otherAdminOrgs', {
+                names: otherAdminOrgs.map((o) => o.name).join(', '),
+              })
+            : isSuperAdmin
+            ? null
+            : $t('admin.users.ownOrgsOnly')
+        "
         value-prop="id"
         label-prop="name"
         :store-object="true"
-        :options="organizations.map(({ id, name }) => ({ id, name }))"
+        :options="manageableOrgs"
       />
 
       <FormComponent
@@ -133,7 +159,11 @@ async function remove() {
       />
 
       <template #actions="{ submit, disabled }">
-        <BtnDelete :disabled="isCurrentUser || isLoading" @confirm="remove" />
+        <BtnDelete
+          v-if="isSuperAdmin"
+          :disabled="isCurrentUser || isLoading"
+          @confirm="remove"
+        />
         <BtnSave :disabled="disabled || isLoading" @click="submit(update)" />
       </template>
     </FormSection>

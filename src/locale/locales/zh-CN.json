@@ -397,7 +397,8 @@
       "updated": "{name} 已更新！",
       "delete": "删除 {name}",
       "slugChangeInfo": "修改名称后，它的访问地址可能也会改变。如果地址改变，保存后会自动跳转到新地址。",
-      "redirectInfo": "{count} 秒后将自动跳转。"
+      "redirectInfo": "{count} 秒后将自动跳转。",
+      "teamAdminsOnly": "成员名单和所属单位只有组织管理员可以修改。"
     },
     "objective": {
       "new": "新目标",
@@ -458,7 +459,9 @@
       "users": "用户",
       "search": "在 {count} 位用户中搜索",
       "registerUsersButton": "注册",
-      "registerUsersText": "输入邮箱地址（每行一个）："
+      "registerUsersText": "输入邮箱地址（每行一个）：",
+      "ownOrgsOnly": "你只能授予或撤销自己所管理组织的管理员权限。",
+      "otherAdminOrgs": "同时也是以下组织的管理员（由那些组织的管理员或超级管理员管理）：{names}"
     },
     "showObjectives": "查看目标",
     "showPeriods": "查看周期",

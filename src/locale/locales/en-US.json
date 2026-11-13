@@ -397,7 +397,8 @@
       "updated": "{name} was updated!",
       "delete": "Delete {name}",
       "slugChangeInfo": "When changing the name of this item, the address to it might also change. In that case you will be automatically redirected after saving the form.",
-      "redirectInfo": "You will be redirected in {count} seconds."
+      "redirectInfo": "You will be redirected in {count} seconds.",
+      "teamAdminsOnly": "Only organization admins can change the members and where it belongs."
     },
     "objective": {
       "new": "New objective",
@@ -458,7 +459,9 @@
       "users": "Users",
       "search": "Search {count} users",
       "registerUsersButton": "Register",
-      "registerUsersText": "Insert email addresses (one address per line):"
+      "registerUsersText": "Insert email addresses (one address per line):",
+      "ownOrgsOnly": "You can grant or remove admin rights only for organizations you administer.",
+      "otherAdminOrgs": "Also admin of: {names} (managed by those organizations’ admins or super admins)."
     },
     "showObjectives": "View objectives",
     "showPeriods": "View periods",

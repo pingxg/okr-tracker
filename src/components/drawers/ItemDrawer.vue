@@ -9,6 +9,7 @@ import { collection, doc } from '@/backend/firestore';
 import { useTrackerStore } from '@/store/tracker';
 import { useActiveItemStore } from '@/store/activeItem';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';
+import { useAuthStore } from '@/store/auth';
 import { Organization, Department, Product } from '@/db/models';
 import { db } from '@/config/backend';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
@@ -28,6 +29,13 @@ const { item, itemType, isOrganization, isDepartment, isProduct } = storeToRefs(
 );
 const { organizations } = storeToRefs(useTrackerStore());
 const { departments } = storeToRefs(useActiveOrganizationStore());
+const { isSuperAdmin, isAdminOfCurrentItemOrganization } = storeToRefs(useAuthStore());
+
+// Members edit name, texts and details; who is a member, where the item sits
+// and archiving are for admins (the server enforces the same).
+const canManageItem = computed(
+  () => isSuperAdmin.value || isAdminOfCurrentItemOrganization.value
+);
 
 const users = useCollection(collection(db, 'users'));
 
@@ -67,13 +75,15 @@ async function save(values) {
       missionStatement,
       targetAudience: targetAudience || '',
       details: cleanDetails(details.value),
-      team: team.map((user) => doc(db, 'users', user.id)),
     };
 
-    if (isDepartment.value) {
-      data.organization = doc(db, 'organizations', parent.id);
-    } else if (isProduct.value) {
-      data.department = doc(db, 'departments', parent.id);
+    if (canManageItem.value) {
+      data.team = team.map((user) => doc(db, 'users', user.id));
+      if (isDepartment.value) {
+        data.organization = doc(db, 'organizations', parent.id);
+      } else if (isProduct.value) {
+        data.department = doc(db, 'departments', parent.id);
+      }
     }
 
     await itemModel.value.update(item.value.id, data);
@@ -182,7 +192,7 @@ async function restore() {
               input-type="custom-select"
               name="parent"
               :value="item.organization"
-              :disabled="item.archived"
+              :disabled="item.archived || !canManageItem"
               :label="$t('admin.department.parentOrganisation')"
               rules="required"
               value-prop="id"
@@ -197,7 +207,7 @@ async function restore() {
               input-type="custom-select"
               name="parent"
               :value="item.department"
-              :disabled="item.archived"
+              :disabled="item.archived || !canManageItem"
               :label="$t('admin.product.parentDepartment')"
               rules="required"
               value-prop="id"
@@ -212,8 +222,9 @@ async function restore() {
               input-type="custom-select"
               select-mode="tags"
               name="team"
-              :disabled="item.archived"
+              :disabled="item.archived || !canManageItem"
               :label="$t('general.teamMembers')"
+              :helptext="canManageItem ? null : $t('admin.item.teamAdminsOnly')"
               value-prop="id"
               :tag-label="(o) => o.displayName || o.id"
               :option-label="(o) => (o.displayName ? `${o.displayName} (${o.id})` : o.id)"
@@ -269,7 +280,7 @@ async function restore() {
     </template>
 
     <template #footer="{ isDone }">
-      <template v-if="!isDone">
+      <template v-if="!isDone && canManageItem">
         <ArchivedRestore
           v-if="item.archived"
           :restore="restore"
