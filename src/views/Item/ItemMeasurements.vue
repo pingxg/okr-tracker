@@ -14,6 +14,7 @@ import KpiDrawer from '@/components/drawers/KpiDrawer.vue';
 import KpiWidgetGroup from '@/components/KpiWidgetGroup.vue';
 import NotFoundPage from '@/components/pages/NotFoundPage.vue';
 import FadeTransition from '@/components/generic/transitions/FadeTransition.vue';
+import { onlyMine } from '@/composables/onlyMine';
 
 const router = useRouter();
 const route = useRoute();
@@ -21,7 +22,7 @@ const i18n = useI18n();
 
 const { hasEditRights } = storeToRefs(useAuthStore());
 const { item } = storeToRefs(useActiveItemStore());
-const { kpis, isLoading } = storeToRefs(useKpisStore());
+const { kpis, allKpisCount, isLoading } = storeToRefs(useKpisStore());
 const { kpiId, kpi, isLoading: kpiIsLoading } = storeToRefs(useActiveKpiStore());
 
 const page = ref(null);
@@ -130,6 +131,18 @@ function kpiCreated(newKpi) {
         </div>
       </template>
     </PageLayout>
+
+    <EmptyPage
+      v-else-if="!isLoading && onlyMine && allKpisCount"
+      :heading="$t('onlyMine.emptyKpis.heading')"
+      :body="$t('onlyMine.emptyKpis.body')"
+    >
+      <div data-mode="dark">
+        <pkt-button skin="primary" @click="onlyMine = false">
+          <span>{{ $t('onlyMine.showAll') }}</span>
+        </pkt-button>
+      </div>
+    </EmptyPage>
 
     <EmptyPage
       v-else-if="!isLoading"

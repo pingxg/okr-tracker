@@ -16,13 +16,15 @@ import WorkbenchPane from '@/components/panes/WorkbenchPane.vue';
 import ObjectiveDrawer from '@/components/drawers/ObjectiveDrawer.vue';
 import KeyResultDrawer from '@/components/drawers/KeyResultDrawer.vue';
 import NotFoundPage from '@/components/pages/NotFoundPage.vue';
+import { onlyMine } from '@/composables/onlyMine';
 
 const router = useRouter();
 const route = useRoute();
 
 const { hasEditRights } = storeToRefs(useAuthStore());
 const okrsStore = useOkrsStore();
-const { objectives, isLoading, workbenchObjectives } = storeToRefs(okrsStore);
+const { objectives, allObjectivesCount, isLoading, workbenchObjectives } =
+  storeToRefs(okrsStore);
 const { addWorkbenchObjective } = okrsStore;
 const { objective: activeObjective, isLoading: activeObjectiveIsLoading } = storeToRefs(
   useActiveObjectiveStore()
@@ -135,6 +137,18 @@ function onKeyResultCreated(keyResultRef) {
       "
       :back-text="$t('btn.back')"
     />
+
+    <EmptyPage
+      v-else-if="!isLoading && onlyMine && allObjectivesCount"
+      :heading="$t('onlyMine.emptyOkrs.heading')"
+      :body="$t('onlyMine.emptyOkrs.body')"
+    >
+      <div data-mode="dark">
+        <pkt-button skin="primary" @click="onlyMine = false">
+          <span>{{ $t('onlyMine.showAll') }}</span>
+        </pkt-button>
+      </div>
+    </EmptyPage>
 
     <EmptyPage
       v-else-if="!isLoading"

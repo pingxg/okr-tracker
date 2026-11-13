@@ -21,6 +21,8 @@ import EmptyState from '@/components/EmptyState.vue';
 import SortableList from '@/components/SortableList.vue';
 import KeyResultLinkCard from '@/components/KeyResultLinkCard.vue';
 import FadeTransition from '@/components/generic/transitions/FadeTransition.vue';
+import { onlyMine } from '@/composables/onlyMine';
+import { assigneeIds } from '@/util/assignees';
 
 const { user, hasEditRights } = storeToRefs(useAuthStore());
 const { organizationTree } = storeToRefs(useActiveOrganizationStore());
@@ -92,6 +94,13 @@ const orderedKeyResults = computed({
   },
 });
 
+// With "Only mine", just the key results assigned to the user.
+const shownKeyResults = computed(() =>
+  onlyMine.value
+    ? orderedKeyResults.value.filter((kr) => assigneeIds(kr).includes(user.value?.id))
+    : orderedKeyResults.value
+);
+
 const isMemberOfChild = computed(() => {
   if (!objective.value || !organizationTree.value) {
     return false;
@@ -131,7 +140,7 @@ function keyResultLinkProps(keyResult) {
     record: keyResult,
     progression: keyResult.progression,
     owner: keyResult.parent?.name ? keyResult.parent : null,
-    draggable: hasEditRights.value,
+    draggable: hasEditRights.value && !onlyMine.value,
   };
 }
 </script>
@@ -209,7 +218,7 @@ function keyResultLinkProps(keyResult) {
         </div>
 
         <SortableList
-          v-if="hasEditRights && keyResults.length"
+          v-if="hasEditRights && !onlyMine && keyResults.length"
           v-model="orderedKeyResults"
           class="objective-pane__key-results-list"
           handle=".drag-icon"
@@ -221,9 +230,9 @@ function keyResultLinkProps(keyResult) {
           />
         </SortableList>
 
-        <div v-else-if="keyResults.length" class="objective-pane__key-results-list">
+        <div v-else-if="shownKeyResults.length" class="objective-pane__key-results-list">
           <KeyResultLinkCard
-            v-for="keyResult in orderedKeyResults"
+            v-for="keyResult in shownKeyResults"
             :key="keyResult.id"
             v-bind="keyResultLinkProps(keyResult)"
           />
@@ -231,8 +240,14 @@ function keyResultLinkProps(keyResult) {
 
         <EmptyState
           v-else
-          :heading="$t('empty.noKeyResults.heading')"
-          :body="$t('empty.noKeyResults.body')"
+          :heading="
+            $t(
+              onlyMine && keyResults.length
+                ? 'onlyMine.noKeyResults'
+                : 'empty.noKeyResults.heading'
+            )
+          "
+          :body="onlyMine && keyResults.length ? '' : $t('empty.noKeyResults.body')"
           skin="dim"
         />
       </div>

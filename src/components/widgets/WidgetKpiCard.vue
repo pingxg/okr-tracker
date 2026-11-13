@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { formatKPIValue } from '@/util/kpiHelpers';
 import { getComputedStyleVariable, DEFAULT_SERIES_OPTIONS } from '@/util/chart';
 import { useAuthStore } from '@/store/auth';
+import { onlyMine } from '@/composables/onlyMine';
 import { useKpi } from '@/composables/kpi';
 import LineChart from '@/components/generic/LineChart.vue';
 import PeriodTrendTag from '@/components/PeriodTrendTag.vue';
@@ -26,6 +27,8 @@ const props = defineProps({
 
 const { kpi, isLoading, period, progress } = useKpi(props.kpiId);
 const { hasEditRights } = storeToRefs(useAuthStore());
+// No reordering while "Only mine" hides part of the list.
+const canReorder = computed(() => hasEditRights.value && !onlyMine.value);
 
 const progressIsFiltered = computed(() => period?.key !== 'all');
 
@@ -58,7 +61,7 @@ const chartOptions = computed(() => ({
     :title="kpi.name"
     :class="['kpi-card-widget', { 'kpi-card-widget--compact': compact }]"
   >
-    <template v-if="hasEditRights" #title-actions>
+    <template v-if="canReorder" #title-actions>
       <pkt-icon class="drag-icon" name="drag" />
     </template>
 

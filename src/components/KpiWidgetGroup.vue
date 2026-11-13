@@ -10,6 +10,7 @@ import downloadFile from '@/util/downloadFile';
 import { periodDates } from '@/util';
 import { compareKPIs } from '@/util/kpiHelpers';
 import { useAuthStore } from '@/store/auth';
+import { onlyMine } from '@/composables/onlyMine';
 import { useActiveItemStore } from '@/store/activeItem';
 import { useKpisStore } from '@/store/kpis';
 import KpiWidgetGroupLink from '@/components/KpiWidgetGroupLink.vue';
@@ -32,6 +33,8 @@ const props = defineProps({
 });
 
 const { hasEditRights } = storeToRefs(useAuthStore());
+// No reordering while "Only mine" hides part of the list.
+const canReorder = computed(() => hasEditRights.value && !onlyMine.value);
 const { item } = storeToRefs(useActiveItemStore());
 const { period } = storeToRefs(useKpisStore());
 
@@ -106,7 +109,7 @@ async function download() {
     </div>
 
     <SortableList
-      v-if="hasEditRights"
+      v-if="canReorder"
       v-model="orderedKpis"
       class="kpi-widget-group__kpis"
       handle=".drag-icon"

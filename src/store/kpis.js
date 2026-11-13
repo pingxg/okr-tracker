@@ -8,6 +8,9 @@ import { db } from '@/config/backend';
 import { DEFAULT_KPI_PERIOD, getPeriods } from '@/config/periods';
 import { PeriodSerializer } from '@/util/period';
 import { useActiveItemStore } from '@/store/activeItem';
+import { authUser } from '@/backend/auth';
+import { onlyMine } from '@/composables/onlyMine';
+import { assigneeIds } from '@/util/assignees';
 
 export const useKpisStore = defineStore('kpis', () => {
   const route = useRoute();
@@ -59,9 +62,20 @@ export const useKpisStore = defineStore('kpis', () => {
   );
 
   const isLoading = computed(() => kpisIsLoading.value || subKpisIsLoading.value);
-  const kpis = computed(() => [..._kpis.value, ..._subKpis.value]);
+  const allKpis = computed(() => [..._kpis.value, ..._subKpis.value]);
 
-  return { period, kpis, isLoading, tmp: _subKpis };
+  /** Number of measurements before the "Only mine" filter. */
+  const allKpisCount = computed(() => allKpis.value.length);
+
+  // With "Only mine", just the measurements assigned to the signed-in user.
+  const kpis = computed(() => {
+    const me = authUser.value?.email;
+    return onlyMine.value
+      ? allKpis.value.filter((kpi) => assigneeIds(kpi).includes(me))
+      : allKpis.value;
+  });
+
+  return { period, kpis, allKpisCount, isLoading, tmp: _subKpis };
 });
 
 export default useKpisStore;

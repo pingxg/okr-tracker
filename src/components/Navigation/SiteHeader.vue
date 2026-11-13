@@ -11,6 +11,7 @@ import SiteMenuDropdown from '@/components/Navigation/SiteMenuDropdown.vue';
 import { NavMenu, NavMenuItem, NavMenuText } from '@/components/Navigation/navbar';
 import PeriodSelectorMenu from '@/components/Navigation/toolbar/PeriodSelectorMenu.vue';
 import ViewToggle from '@/components/Navigation/toolbar/ViewToggle.vue';
+import OnlyMineToggle from '@/components/Navigation/toolbar/OnlyMineToggle.vue';
 import UserMenuDropdown from '@/components/Navigation/UserMenuDropdown.vue';
 import FadeTransition from '@/components/generic/transitions/FadeTransition.vue';
 
@@ -19,8 +20,12 @@ const route = useRoute();
 
 const { item, itemType } = storeToRefs(useActiveItemStore());
 const { user, hasEditRights } = storeToRefs(useAuthStore());
-const { objectives, isLoading: objectivesIsLoading } = storeToRefs(useOkrsStore());
-const { kpis, isLoading: kpisIsLoading } = storeToRefs(useKpisStore());
+// Unfiltered counts: the toolbar (with the "Only mine" switch) stays visible
+// even when nothing is assigned to the user.
+const { allObjectivesCount, isLoading: objectivesIsLoading } = storeToRefs(
+  useOkrsStore()
+);
+const { allKpisCount, isLoading: kpisIsLoading } = storeToRefs(useKpisStore());
 
 const siteMenuEnabled = computed(() => route.name !== 'Login');
 
@@ -104,10 +109,10 @@ const aboutLabel = computed(() => {
 
 const showToolbar = computed(() => {
   if (['ItemHome', 'ObjectiveHome', 'KeyResultHome'].includes(route.name)) {
-    return objectivesIsLoading.value || objectives.value.length > 0;
+    return objectivesIsLoading.value || allObjectivesCount.value > 0;
   }
   if (route.name === 'ItemMeasurements') {
-    return kpisIsLoading.value || kpis.value.length > 0;
+    return kpisIsLoading.value || allKpisCount.value > 0;
   }
   return false;
 });
@@ -195,6 +200,7 @@ const showToolbar = computed(() => {
     <FadeTransition>
       <nav v-if="showToolbar" class="nav-bar site-navigation__toolbar" role="menubar">
         <PeriodSelectorMenu />
+        <OnlyMineToggle />
         <ViewToggle />
       </nav>
     </FadeTransition>

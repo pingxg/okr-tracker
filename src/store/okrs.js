@@ -2,7 +2,10 @@ import { computed, ref } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
 import { useCollection } from '@/backend/vuefire';
 import { useRoute } from 'vue-router';
-import { collection, query, where } from '@/backend/firestore';
+import { collection, doc, query, where } from '@/backend/firestore';
+import { authUser } from '@/backend/auth';
+import { onlyMine } from '@/composables/onlyMine';
+import { userIdOf } from '@/util/assignees';
 import { useLocalStorage } from '@vueuse/core';
 import { useActiveObjectiveStore } from '@/store/activeObjective';
 import { db } from '@/config/backend';
@@ -54,36 +57,66 @@ export const useOkrsStore = defineStore('okrs', () => {
       { maxRefDepth: 1, ssrKey: 'objectiveContributions' }
     );
 
-  const isLoading = computed(
-    () => _objectivesIsLoading.value || _objectiveContributionsIsLoading.value
+  // Key results assigned to the signed-in user, for "Only mine".
+  const myUserRef = computed(
+    () => authUser.value?.email && doc(db, 'users', authUser.value.email)
+  );
+  const { data: _myKeyResults, pending: _myKeyResultsIsLoading } = useCollection(
+    computed(
+      () =>
+        isOkrsView.value &&
+        onlyMine.value &&
+        myUserRef.value &&
+        query(
+          collection(db, 'keyResults'),
+          where('assignees', 'array-contains', myUserRef.value),
+          where('archived', '==', false)
+        )
+    ),
+    { maxRefDepth: 0, ssrKey: 'myKeyResults' }
+  );
+  /** Ids of objectives that have a key result assigned to the user. */
+  const myObjectiveIds = computed(
+    () => new Set(_myKeyResults.value.map((kr) => userIdOf(kr.objective)))
   );
 
+  const isLoading = computed(
+    () =>
+      _objectivesIsLoading.value ||
+      _objectiveContributionsIsLoading.value ||
+      (onlyMine.value && _myKeyResultsIsLoading.value)
+  );
+
+  const allObjectives = computed(() => [
+    // Objectives where the currently active item is parent
+    ..._objectives.value,
+    // Also include external objectives
+    ..._objectiveContributions.value
+      .filter((oc) => {
+        return (
+          // Filter out archived objectives ...
+          !oc.objective.archived &&
+          // ... and those that aren't external.
+          !_objectives.value.map((o) => o.id).includes(oc.objective.id)
+        );
+      })
+      .map((oc) => oc.objective),
+  ]);
+
+  /** Number of objectives before the "Only mine" filter. */
+  const allObjectivesCount = computed(() => allObjectives.value.length);
+
   const objectives = computed(() => {
-    const allObjectives = [
-      // Objectives where the currently active item is parent
-      ..._objectives.value,
-      // Also include external objectives
-      ..._objectiveContributions.value
-        .filter((oc) => {
-          return (
-            // Filter out archived objectives ...
-            !oc.objective.archived &&
-            // ... and those that aren't external.
-            !_objectives.value.map((o) => o.id).includes(oc.objective.id)
-          );
-        })
-        .map((oc) => oc.objective),
-    ];
+    const shown = onlyMine.value
+      ? allObjectives.value.filter((o) => myObjectiveIds.value.has(o.id))
+      : [...allObjectives.value];
 
     // Include any active objective - either lifted or archived - as ghost until dismissed
-    if (
-      activeObjective.value &&
-      !allObjectives.find((o) => o.id === activeObjective.value.id)
-    ) {
-      allObjectives.push(activeObjective.value);
+    if (activeObjective.value && !shown.find((o) => o.id === activeObjective.value.id)) {
+      shown.push(activeObjective.value);
     }
 
-    return allObjectives;
+    return shown;
   });
 
   // Workbench
@@ -116,6 +149,7 @@ export const useOkrsStore = defineStore('okrs', () => {
   return {
     period,
     objectives,
+    allObjectivesCount,
     isLoading,
     workbenchObjectives,
     addWorkbenchObjective,
