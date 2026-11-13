@@ -15,6 +15,11 @@ export default {
     type: 'array',
     required: false,
   },
+  // Own information groups: [{ title, fields: [{ label, value }] }]
+  details: {
+    type: 'array',
+    required: false,
+  },
   missionStatement: {
     type: 'string',
     required: false,

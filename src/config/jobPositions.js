@@ -1,68 +1,37 @@
+/**
+ * Roles people can pick in their profile. A role is a label only: it groups
+ * members on the "About" pages and does not grant any rights (rights come from
+ * admin / super admin in Admin).
+ */
 export const jobPositions = [
+  'projectManager',
+  'projectCoordinator',
+  'specialist',
   'administration',
-  'backendDeveloper',
-  'businessAnalyst',
-  'businessDeveloper',
-  'contentDesigner',
-  'contentProducer',
-  'dataEngineer',
-  'dataScientist',
-  'departmentDirector',
-  'designLead',
-  'director',
-  'frontendDeveloper',
-  'fullStackDeveloper',
-  'graphicDesigner',
-  'hardwareDeveloper',
-  'hr',
-  'humanResourcesManager',
-  'informationArchitect',
-  'interactionDesigner',
-  'itCustodian',
-  'legalAdvisor',
-  'mobileDeveloper',
-  'organizationDeveloper',
-  'principalEngineer',
-  'productOwner',
-  'securityExpert',
-  'serviceDesigner',
-  'storyteller',
-  'teamLead',
-  'productLead',
-  'techLead',
   'other',
 ];
 
-export const possibleDevelopers = [
-  'frontendDeveloper',
-  'backendDeveloper',
-  'fullStackDeveloper',
-  'dataScientist',
-  'dataEngineer',
-  'hardwareDeveloper',
-  'mobileDeveloper',
-];
+/**
+ * Group heading on the "About" pages for each role. Roles from the original
+ * list that were saved before are kept in a sensible group, so nobody drops
+ * out of the member list.
+ */
+const groupOf = {
+  projectManager: 'projectManager',
+  projectCoordinator: 'projectCoordinator',
+  specialist: 'specialist',
+  administration: 'administration',
+  hr: 'administration',
+  humanResourcesManager: 'administration',
+};
 
-export const possibleDesigners = [
-  'interactionDesigner',
-  'serviceDesigner',
-  'contentDesigner',
-  'graphicDesigner',
-  'contentProducer',
-];
+export const positionGroup = (position) => groupOf[position] || 'others';
 
-export const possibleAdm = ['humanResourcesManager', 'administration', 'hr'];
-
+/** Order of the groups on the "About" pages. */
 export const displayOrder = [
-  'director',
-  'departmentDirector',
-  'productOwner',
-  'productLead',
-  'teamLead',
-  'techLead',
-  'designLead',
-  'designers',
-  'developers',
+  'projectManager',
+  'projectCoordinator',
+  'specialist',
   'administration',
   'others',
 ];

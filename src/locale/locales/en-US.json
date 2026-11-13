@@ -569,8 +569,11 @@
         "members": "Team members",
         "productOwner": "Product owner",
         "director": "Director",
-        "others": "Members",
-        "departmentDirector": "Department director"
+        "others": "Other members",
+        "departmentDirector": "Department director",
+        "projectManager": "Project managers",
+        "projectCoordinator": "Project coordinators",
+        "specialist": "Specialists"
       },
       "title": "Role",
       "member": "Member",
@@ -605,7 +608,10 @@
       "administration": "Administration",
       "contentProducer": "Content producer",
       "other": "Other",
-      "storyteller": "Storyteller"
+      "storyteller": "Storyteller",
+      "projectManager": "Project manager",
+      "projectCoordinator": "Project coordinator",
+      "specialist": "Specialist"
     }
   },
   "dashboard": {
@@ -665,5 +671,17 @@
   "languages": {
     "en-US": "English",
     "zh-CN": "中文"
+  },
+  "details": {
+    "help": "Add your own groups and fields, for example “Company details” with “Business ID”, “Address” and “Founded”.",
+    "groupTitle": "Group name",
+    "fieldName": "Field name",
+    "fieldValue": "Value",
+    "addField": "Add field",
+    "addGroup": "Add group",
+    "removeGroup": "Remove group",
+    "removeField": "Remove field",
+    "moveUp": "Move up",
+    "moveDown": "Move down"
   }
 }

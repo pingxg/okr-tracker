@@ -16,6 +16,8 @@ import '@oslokommune/punkt-elements/dist/pkt-alert.js';
 import { BtnSave, BtnDelete } from '@/components/generic/form';
 import ArchivedRestore from '@/components/ArchivedRestore.vue';
 import PagedDrawerWrapper from '@/components/drawers/PagedDrawerWrapper.vue';
+import ItemDetailsEditor from '@/components/forms/ItemDetailsEditor.vue';
+import { cleanDetails, editableDetails } from '@/util/itemDetails';
 
 const router = useRouter();
 const i18n = useI18n();
@@ -30,8 +32,12 @@ const { departments } = storeToRefs(useActiveOrganizationStore());
 const users = useCollection(collection(db, 'users'));
 
 const drawer = ref(null);
-const pageCount = ref(2);
+// 1: name and texts, 2: own information fields, 3: parent and team.
+const pageCount = ref(3);
 const loading = ref(false);
+// The item's information groups, edited outside the form fields because the
+// number of groups and rows changes while editing.
+const details = ref(editableDetails(item.value?.details));
 
 const itemModel = computed(() => {
   if (isOrganization.value) {
@@ -60,6 +66,7 @@ async function save(values) {
       name,
       missionStatement,
       targetAudience: targetAudience || '',
+      details: cleanDetails(details.value),
       team: team.map((user) => doc(db, 'users', user.id)),
     };
 
@@ -166,6 +173,10 @@ async function restore() {
           </template>
 
           <template v-else-if="pageIndex === 2">
+            <ItemDetailsEditor v-model="details" :disabled="item.archived" />
+          </template>
+
+          <template v-else-if="pageIndex === 3">
             <FormComponent
               v-if="isDepartment"
               input-type="custom-select"

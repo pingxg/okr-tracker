@@ -3,12 +3,8 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import {
-  possibleDevelopers,
-  possibleAdm,
-  possibleDesigners,
-  displayOrder,
-} from '@/config/jobPositions';
+import { displayOrder, positionGroup } from '@/config/jobPositions';
+import { cleanDetails } from '@/util/itemDetails';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';
 import { useActiveItemStore } from '@/store/activeItem';
 import { useAuthStore } from '@/store/auth';
@@ -62,37 +58,19 @@ const children = computed(() => {
 const teamMembers = computed(() => {
   const members = {};
 
+  // Every member lands in a group that is shown (see positionGroup).
   item.value.team.forEach((employee) => {
-    if (!employee.position) {
-      if (!members.others) {
-        members.others = [];
-      }
-      members.others.push(employee);
-    } else if (possibleDevelopers.includes(employee.position)) {
-      if (!members.developers) {
-        members.developers = [];
-      }
-      members.developers.push(employee);
-    } else if (possibleDesigners.includes(employee.position)) {
-      if (!members.designers) {
-        members.designers = [];
-      }
-      members.designers.push(employee);
-    } else if (possibleAdm.includes(employee.position)) {
-      if (!members.administration) {
-        members.administration = [];
-      }
-      members.administration.push(employee);
-    } else {
-      if (!members[employee.position]) {
-        members[employee.position] = [];
-      }
-      members[employee.position].push(employee);
+    const group = positionGroup(employee.position);
+    if (!members[group]) {
+      members[group] = [];
     }
+    members[group].push(employee);
   });
 
   return members;
 });
+
+const details = computed(() => cleanDetails(item.value.details));
 
 watch(showItemDrawer, (show) => {
   if (!show && route.query.edit) {
@@ -133,6 +111,16 @@ function sortByDisplayOrder(roles) {
     <section v-if="item.targetAudience">
       <h2 class="pkt-txt-30">{{ $t('dashboard.targetAudience') }}</h2>
       <HTMLOutput class="pkt-txt-18" :html="item.targetAudience" />
+    </section>
+
+    <section v-for="(group, gi) in details" :key="`details-${gi}`">
+      <h2 v-if="group.title" class="pkt-txt-30">{{ group.title }}</h2>
+      <dl v-if="group.fields.length" class="item-details pkt-txt-18">
+        <template v-for="(field, fi) in group.fields" :key="fi">
+          <dt>{{ field.label }}</dt>
+          <dd>{{ field.value }}</dd>
+        </template>
+      </dl>
     </section>
 
     <section v-if="children.length">
@@ -189,6 +177,23 @@ section {
 
 h2 {
   margin: 1.25rem 0;
+}
+
+.item-details {
+  display: grid;
+  grid-template-columns: minmax(8rem, max-content) 1fr;
+  gap: 0.5rem 2rem;
+  margin: 0;
+
+  dt {
+    color: var(--color-grayscale-60);
+  }
+
+  dd {
+    margin: 0;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
 }
 
 h3 {
