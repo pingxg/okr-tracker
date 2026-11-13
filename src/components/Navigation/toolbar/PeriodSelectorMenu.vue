@@ -71,16 +71,11 @@ const periodLabel = computed(() => {
     width: 100vw;
 
     @include bp('tablet-up') {
-      width: unset;
-      min-width: 10rem;
+      width: 30rem;
     }
 
     :deep(.period-selector__options button) {
       min-height: 4rem;
-
-      @media screen and (min-width: 0rem) and (max-width: 28rem) {
-        width: 100%;
-      }
     }
   }
 

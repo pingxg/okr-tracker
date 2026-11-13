@@ -378,7 +378,8 @@
     "year": "So far this year",
     "all": "Everything",
     "thisQuarter": "This quarter",
-    "previousQuarter": "Previous quarter"
+    "previousQuarter": "Previous quarter",
+    "custom": "Custom period"
   },
   "workbench": {
     "selectedObjectives": "Selected objectives",

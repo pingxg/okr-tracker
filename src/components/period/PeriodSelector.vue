@@ -1,4 +1,8 @@
 <script setup>
+/**
+ * Period picker in the header: shortcuts first, then a custom period as two
+ * date fields (start, end), each opening its own calendar.
+ */
 import { computed, ref, watch } from 'vue';
 import { endOfDay, startOfDay } from 'date-fns';
 import { periodObjectFromDates } from '@/util';
@@ -20,21 +24,30 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'select']);
 
-// Two calendars: start date and end date.
 const start = ref(null);
 const end = ref(null);
 
+// The custom fields only show a custom period; a shortcut is shown as the
+// highlighted button instead.
 watch(
   () => props.modelValue,
   (period) => {
-    start.value = period?.startDate || null;
-    end.value = period?.endDate || null;
+    const custom = period && !period.key;
+    start.value = (custom && period.startDate) || null;
+    end.value = (custom && period.endDate) || null;
   },
   { immediate: true }
 );
 
-const startConfig = { inline: true };
-const endConfig = computed(() => ({ inline: true, minDate: start.value || null }));
+// The calendars open outside the menu; clicks in them must not close it.
+const keepMenuOpen = (_dates, _str, instance) =>
+  instance.calendarContainer.classList.add('ignore-click-outside');
+
+const startConfig = { onReady: [keepMenuOpen] };
+const endConfig = computed(() => ({
+  onReady: [keepMenuOpen],
+  minDate: start.value || null,
+}));
 
 const sameDay = (a, b) =>
   Boolean(a && b) && startOfDay(a).getTime() === startOfDay(b).getTime();
@@ -60,7 +73,6 @@ function onStart(value) {
     end.value = null;
     return;
   }
-  // Keep the menu open: the end date may be changed next.
   emitPeriod(false);
 }
 
@@ -80,27 +92,8 @@ function select(period) {
 
 <template>
   <div class="period-selector">
-    <div class="period-selector__calendars">
-      <DatePicker
-        id="period-start"
-        :model-value="start"
-        :label="$t('fields.startDate')"
-        :date-picker-config="startConfig"
-        @update:model-value="onStart"
-      />
-      <DatePicker
-        id="period-end"
-        :model-value="end"
-        :label="$t('fields.endDate')"
-        :date-picker-config="endConfig"
-        @update:model-value="onEnd"
-      />
-    </div>
-
-    <div v-if="periodShortcuts.length">
-      <h3 class="pkt-txt-16-medium">
-        {{ $t('general.shortcuts') }}
-      </h3>
+    <section v-if="periodShortcuts.length">
+      <h3 class="pkt-txt-16-medium mb-size-8">{{ $t('general.shortcuts') }}</h3>
       <div class="period-selector__options">
         <PeriodShortcut
           v-for="period in periodShortcuts"
@@ -110,7 +103,29 @@ function select(period) {
           @click="select(period)"
         />
       </div>
-    </div>
+    </section>
+
+    <section>
+      <h3 class="pkt-txt-16-medium mb-size-8">{{ $t('period.custom') }}</h3>
+      <div class="period-selector__dates">
+        <DatePicker
+          id="period-start"
+          :model-value="start"
+          :label="$t('fields.startDate')"
+          :placeholder="$t('general.selectDate')"
+          :date-picker-config="startConfig"
+          @update:model-value="onStart"
+        />
+        <DatePicker
+          id="period-end"
+          :model-value="end"
+          :label="$t('fields.endDate')"
+          :placeholder="$t('general.selectDate')"
+          :date-picker-config="endConfig"
+          @update:model-value="onEnd"
+        />
+      </div>
+    </section>
   </div>
 </template>
 
@@ -122,33 +137,28 @@ function select(period) {
   width: 100%;
   padding: 1rem;
 
-  &__calendars {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem 2rem;
-  }
-
   &__options {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
-    margin-top: 0.5rem;
-  }
 
-  :deep(.flatpickr-calendar) {
-    top: 0;
-    margin: 0 auto;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+    :deep(.period-shortcut),
+    :deep(.period-shortcut .pkt-btn) {
+      width: 100%;
+      height: 100%;
+    }
 
-    svg {
-      vertical-align: baseline;
+    :deep(.period-shortcut .pkt-btn) {
+      justify-content: flex-start;
+      text-align: left;
+      white-space: normal;
     }
   }
-}
 
-:deep(.flatpickr-input) {
-  display: none;
+  &__dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
 }
 </style>

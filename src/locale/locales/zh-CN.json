@@ -378,7 +378,8 @@
     "year": "今年至今",
     "all": "全部",
     "thisQuarter": "本季度",
-    "previousQuarter": "上季度"
+    "previousQuarter": "上季度",
+    "custom": "自定义周期"
   },
   "workbench": {
     "selectedObjectives": "已选目标",
