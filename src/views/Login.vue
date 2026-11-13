@@ -32,6 +32,8 @@ const authenticationErrorMessage = computed(() => {
       return i18n.t('login.error.providerError');
     case 5:
       return i18n.t('login.error.userAbort');
+    case 7:
+      return i18n.t('login.error.notAllowed');
     default:
       return null;
   }

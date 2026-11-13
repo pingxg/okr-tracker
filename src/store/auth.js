@@ -35,7 +35,19 @@ export const useAuthStore = defineStore('auth', () => {
       .map(([provider]) => provider)
   );
   // The server sends people back to /login?error=… when single sign-on fails.
-  const authenticationError = ref(route.query?.error ? 2 : null);
+  // `notAllowed`: the account is not a member of our organization.
+  // Watched, not read once: the store can be created before the router has
+  // resolved the first page, when the query is still empty.
+  const authenticationError = ref(null);
+  watch(
+    () => route.query?.error,
+    (error) => {
+      if (error) {
+        authenticationError.value = { notAllowed: 7 }[error] || 2;
+      }
+    },
+    { immediate: true }
+  );
   const isAuthenticating = ref(false);
 
   const preferences = computed(

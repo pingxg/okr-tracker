@@ -112,7 +112,9 @@
     "updateFrequency": "Update frequency",
     "language": "Language",
     "kpiType": "Type",
-    "example": "Example"
+    "example": "Example",
+    "startDate": "Start date",
+    "endDate": "End date"
   },
   "validation": {
     "alpha": "May only contain alphabetic characters",
@@ -189,7 +191,6 @@
     "otherMeasurements": "Other measurements",
     "value": "Value",
     "target": "Target",
-    "selectRange": "Select a start and end date",
     "formErrors": "The form contains errors that must be corrected.",
     "displayedAs": "Displayed as: ",
     "today": "Today",
@@ -200,7 +201,8 @@
     "graph": "Graph",
     "error": "Error",
     "unknown": "unknown",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "selectDate": "Select a date"
   },
   "home": {
     "welcome": "Welcome to {appName}!",
@@ -265,7 +267,8 @@
       "notRegistered": "Your account has not been set up yet. Please contact a system administrator.",
       "providerError": "Could not sign in. Please contact system administrator if the error persists.",
       "userAbort": "Login request aborted. Please try again.",
-      "notConfigured": "Microsoft 365 sign-in is not configured yet. Please contact a system administrator."
+      "notConfigured": "Microsoft 365 sign-in is not configured yet. Please contact a system administrator.",
+      "notAllowed": "Only accounts of the Spartao Oy organization can sign in. External, personal and guest accounts are not allowed."
     }
   },
   "toaster": {
@@ -671,5 +674,18 @@
     "removeField": "Remove field",
     "moveUp": "Move up",
     "moveDown": "Move down"
+  },
+  "archivedPage": {
+    "title": "Archived",
+    "intro": "Objectives, key results and measurements deleted here are archived, not gone. You can restore them here.",
+    "objectives": "Objectives",
+    "keyResults": "Key results",
+    "kpis": "Measurements",
+    "inObjective": "In objective: {name}",
+    "inArchivedObjective": "In objective: {name} (this objective is archived too, restore it first)",
+    "empty": {
+      "heading": "Nothing archived",
+      "body": "Deleted objectives, key results and measurements show up here."
+    }
   }
 }

@@ -112,7 +112,9 @@
     "updateFrequency": "更新频率",
     "language": "语言",
     "kpiType": "类型",
-    "example": "示例"
+    "example": "示例",
+    "startDate": "开始日期",
+    "endDate": "结束日期"
   },
   "validation": {
     "alpha": "只能包含字母",
@@ -189,7 +191,6 @@
     "otherMeasurements": "其他指标",
     "value": "数值",
     "target": "目标值",
-    "selectRange": "选择开始和结束日期",
     "formErrors": "表单有错误，请修正后再提交。",
     "displayedAs": "显示为：",
     "today": "今天",
@@ -200,7 +201,8 @@
     "graph": "图表",
     "error": "错误",
     "unknown": "未知",
-    "noResults": "没有找到结果"
+    "noResults": "没有找到结果",
+    "selectDate": "选择日期"
   },
   "home": {
     "welcome": "欢迎使用 {appName}！",
@@ -265,7 +267,8 @@
       "notRegistered": "你的账号尚未开通，请联系系统管理员。",
       "providerError": "登录失败。如果问题持续存在，请联系系统管理员。",
       "userAbort": "登录已取消，请重试。",
-      "notConfigured": "尚未配置 Microsoft 365 登录，请联系系统管理员。"
+      "notConfigured": "尚未配置 Microsoft 365 登录，请联系系统管理员。",
+      "notAllowed": "仅限 Spartao Oy 组织内的账号访问。外部账号、个人账号和访客账号无法登录。"
     }
   },
   "toaster": {
@@ -671,5 +674,18 @@
     "removeField": "删除字段",
     "moveUp": "上移",
     "moveDown": "下移"
+  },
+  "archivedPage": {
+    "title": "已归档",
+    "intro": "在这里删除的目标、关键结果和指标不会真正消失，而是被归档。需要时可以在这里恢复。",
+    "objectives": "目标",
+    "keyResults": "关键结果",
+    "kpis": "指标",
+    "inObjective": "属于目标：{name}",
+    "inArchivedObjective": "属于目标：{name}（该目标也已归档，请先恢复目标）",
+    "empty": {
+      "heading": "没有已归档的记录",
+      "body": "删除的目标、关键结果和指标会出现在这里。"
+    }
   }
 }

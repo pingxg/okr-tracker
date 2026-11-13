@@ -40,6 +40,9 @@ const config = {
     clientId: env.OIDC_CLIENT_ID || '',
     clientSecret: env.OIDC_CLIENT_SECRET || '',
     scopes: env.OIDC_SCOPES || 'openid profile email',
+    // Only members of this Entra ID tenant may sign in. Taken from the issuer
+    // URL when not set.
+    tenantId: env.OIDC_TENANT_ID || '',
   },
 
   // Create a tracker user automatically on first SSO login (spec §3). Only

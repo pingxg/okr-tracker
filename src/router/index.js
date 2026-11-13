@@ -107,6 +107,11 @@ const routes = [
         name: 'ItemIntegrations',
         component: () => import('@/views/Item/ItemIntegrations.vue'),
       },
+      {
+        path: 'archived',
+        name: 'ItemArchived',
+        component: () => import('@/views/Item/ItemArchived.vue'),
+      },
       /*
        * Redirect old paths for objective and key result details.
        */

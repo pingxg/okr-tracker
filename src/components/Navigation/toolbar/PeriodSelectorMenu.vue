@@ -56,7 +56,6 @@ const periodLabel = computed(() => {
       <PeriodSelector
         v-model="period"
         :period-shortcuts="predefinedPeriods"
-        :max-months="3"
         class="period-selector-menu__dropdown"
         @select="close"
       />

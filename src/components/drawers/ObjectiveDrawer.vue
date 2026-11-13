@@ -11,7 +11,12 @@ import { useObjective } from '@/composables/objective';
 import Objective from '@/db/Objective';
 import { db } from '@/config/backend';
 import syncObjectiveContributors from '@/util/objectiveContributors';
-import { BtnSave, BtnDelete, BtnCancel } from '@/components/generic/form';
+import {
+  BtnSave,
+  BtnDelete,
+  BtnCancel,
+  DateRangeFields,
+} from '@/components/generic/form';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
 import '@oslokommune/punkt-elements/dist/pkt-alert.js';
 import ArchivedRestore from '@/components/ArchivedRestore.vue';
@@ -311,14 +316,10 @@ async function restore() {
           :label="$t('fields.description')"
         />
 
-        <FormComponent
+        <DateRangeFields
           v-model="formData.period"
-          input-type="date"
           name="period"
           :disabled="isArchived"
-          :label="$t('fields.period')"
-          :placeholder="$t('general.selectRange')"
-          :date-picker-config="{ mode: 'range' }"
           rules="required"
         />
 

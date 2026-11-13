@@ -9,7 +9,12 @@ import { db } from '@/config/backend';
 import Goal from '@/db/Kpi/Goal';
 import { periodDates } from '@/util';
 import '@oslokommune/punkt-elements/dist/pkt-button.js';
-import { FormSection, BtnDelete, BtnSave } from '@/components/generic/form';
+import {
+  FormSection,
+  BtnDelete,
+  BtnSave,
+  DateRangeFields,
+} from '@/components/generic/form';
 import { formatKPIValue } from '@/util/kpiHelpers';
 import FadeTransition from '@/components/generic/transitions/FadeTransition.vue';
 import ModalWrapper from './ModalWrapper.vue';
@@ -184,13 +189,9 @@ async function archive() {
               rules="required"
             />
 
-            <FormComponent
+            <DateRangeFields
               v-model="formData.period"
-              input-type="date"
               name="period"
-              :label="$t('fields.period')"
-              :placeholder="$t('general.selectRange')"
-              :date-picker-config="{ mode: 'range' }"
               :disabled="formIsDisabled"
               rules="required"
             />

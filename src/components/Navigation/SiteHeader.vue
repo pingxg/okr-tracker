@@ -41,6 +41,7 @@ const siteMenuLabel = computed(() => {
       'ItemMeasurements',
       'ItemAbout',
       'ItemIntegrations',
+      'ItemArchived',
       'KeyResultHome',
       'ObjectiveHome',
     ].includes(route.name) &&
@@ -72,6 +73,12 @@ const itemTabs = computed(() => {
     },
   ];
   if (hasEditRights.value) {
+    items.push({
+      route: { name: 'ItemArchived' },
+      icon: 'archive',
+      tooltip: i18n.t('archivedPage.title'),
+      pull: 'right',
+    });
     items.push({
       route: { name: 'ItemIntegrations' },
       icon: 'crane',
@@ -139,7 +146,15 @@ const showToolbar = computed(() => {
             v-for="(itemMenuTab, index) in itemTabs"
             :key="`item_tabs_${index}`"
             v-tooltip.bottom="itemMenuTab.tooltip"
-            :class="['item-menu__item', `item-menu__item--${itemMenuTab.pull || 'left'}`]"
+            :class="[
+              'item-menu__item',
+              `item-menu__item--${itemMenuTab.pull || 'left'}`,
+              {
+                'item-menu__item--push':
+                  itemMenuTab.pull === 'right' &&
+                  itemTabs.findIndex((t) => t.pull === 'right') === index,
+              },
+            ]"
             :route="itemMenuTab.route"
             :active="itemMenuTab.active"
             :aria="{ label: itemMenuTab.label || itemMenuTab.tooltip }"
@@ -222,7 +237,8 @@ const showToolbar = computed(() => {
 .item-menu {
   flex: 1;
 
-  &__item--right {
+  // Only the first right-hand tab pushes; the others sit next to it.
+  &__item--push {
     margin-left: auto;
   }
 }

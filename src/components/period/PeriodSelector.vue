@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { endOfDay, startOfDay } from 'date-fns';
 import { periodObjectFromDates } from '@/util';
 import DatePicker from '@/components/generic/form/DatePicker.vue';
@@ -16,61 +16,61 @@ const props = defineProps({
     required: false,
     default: () => [],
   },
-  maxMonths: {
-    type: Number,
-    required: false,
-    default: 1,
-  },
 });
 
 const emit = defineEmits(['update:modelValue', 'select']);
 
-const showMonths = ref(1);
+// Two calendars: start date and end date.
+const start = ref(null);
+const end = ref(null);
 
-onMounted(() => {
-  const calculatedMonthLimit = Math.floor(window.innerWidth / 380);
-  if (calculatedMonthLimit === 0) {
-    showMonths.value = 1;
+watch(
+  () => props.modelValue,
+  (period) => {
+    start.value = period?.startDate || null;
+    end.value = period?.endDate || null;
+  },
+  { immediate: true }
+);
+
+const startConfig = { inline: true };
+const endConfig = computed(() => ({ inline: true, minDate: start.value || null }));
+
+const sameDay = (a, b) =>
+  Boolean(a && b) && startOfDay(a).getTime() === startOfDay(b).getTime();
+
+function emitPeriod(close) {
+  if (!start.value || !end.value) {
     return;
   }
-  showMonths.value =
-    props.maxMonths > calculatedMonthLimit ? calculatedMonthLimit : props.maxMonths;
-});
+  const period = periodObjectFromDates(startOfDay(start.value), endOfDay(end.value));
+  emit('update:modelValue', period);
+  if (close) {
+    emit('select', period);
+  }
+}
 
-const calendarConfig = computed(() => ({
-  inline: true,
-  mode: 'range',
-  minDate: null,
-  maxDate: null,
-  showMonths: showMonths.value,
-}));
+function onStart(value) {
+  if (sameDay(value, start.value)) {
+    return;
+  }
+  start.value = value;
+  // An end date before the new start date has to be picked again.
+  if (value && end.value && startOfDay(end.value) < startOfDay(value)) {
+    end.value = null;
+    return;
+  }
+  // Keep the menu open: the end date may be changed next.
+  emitPeriod(false);
+}
 
-const range = computed({
-  get() {
-    if (!props.modelValue) {
-      return [];
-    }
-    const { startDate, endDate } = props.modelValue;
-    return startDate && endDate ? [startDate, endDate] : [];
-  },
-  set(value) {
-    let [selectedStart, selectedEnd] = value;
-    selectedStart = startOfDay(selectedStart);
-    selectedEnd = endOfDay(selectedEnd);
-
-    if (range.value) {
-      const [currentStart, currentEnd] = range.value;
-      if (
-        selectedStart.getTime() === startOfDay(currentStart).getTime() &&
-        selectedEnd.getTime() === endOfDay(currentEnd).getTime()
-      ) {
-        return;
-      }
-    }
-
-    select(periodObjectFromDates(selectedStart, selectedEnd));
-  },
-});
+function onEnd(value) {
+  if (sameDay(value, end.value)) {
+    return;
+  }
+  end.value = value;
+  emitPeriod(true);
+}
 
 function select(period) {
   emit('update:modelValue', period);
@@ -80,12 +80,22 @@ function select(period) {
 
 <template>
   <div class="period-selector">
-    <DatePicker
-      id="period"
-      v-model="range"
-      :label="$t('period.choosePeriod')"
-      :date-picker-config="calendarConfig"
-    />
+    <div class="period-selector__calendars">
+      <DatePicker
+        id="period-start"
+        :model-value="start"
+        :label="$t('fields.startDate')"
+        :date-picker-config="startConfig"
+        @update:model-value="onStart"
+      />
+      <DatePicker
+        id="period-end"
+        :model-value="end"
+        :label="$t('fields.endDate')"
+        :date-picker-config="endConfig"
+        @update:model-value="onEnd"
+      />
+    </div>
 
     <div v-if="periodShortcuts.length">
       <h3 class="pkt-txt-16-medium">
@@ -112,8 +122,10 @@ function select(period) {
   width: 100%;
   padding: 1rem;
 
-  &__section-title {
-    margin-bottom: 0.5rem;
+  &__calendars {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
   }
 
   &__options {

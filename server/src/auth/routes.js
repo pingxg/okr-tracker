@@ -17,6 +17,7 @@ import {
   encodeSigned,
 } from './session.js';
 import { actorFromRequest, ensureTrackerUser } from './users.js';
+import { isTenantMember, tenantIdFrom } from './tenant.js';
 
 const OIDC_COOKIE = 'okr_oidc';
 let oidcConfigPromise = null;
@@ -111,6 +112,16 @@ export default async function authRoutes(fastify) {
     } catch (error) {
       request.log.warn({ err: error }, 'OIDC callback failed');
       return reply.redirect('/login?error=provider');
+    }
+
+    // Accounts outside our organization (other tenants, personal accounts,
+    // guests) are refused before any user or session is created.
+    if (!isTenantMember(claims, tenantIdFrom(config.oidc))) {
+      request.log.warn(
+        { tid: claims.tid, idp: claims.idp || null },
+        'Sign-in refused: account is not a member of the organization'
+      );
+      return reply.redirect('/login?error=notAllowed');
     }
 
     const email = String(
