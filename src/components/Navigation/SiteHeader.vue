@@ -131,7 +131,7 @@ const showToolbar = computed(() => {
           class="site-menu__item"
         >
           <template #text>
-            <pkt-icon class="nav-menu-item__icon" name="bullseye" />
+            <img class="site-logo" src="/logo.png" alt="Spartao" />
             <span class="pkt-show-tablet-up">{{ siteMenuLabel }}</span>
           </template>
           <template #default>
@@ -139,7 +139,7 @@ const showToolbar = computed(() => {
           </template>
         </NavMenuItem>
         <NavMenuText v-else strong>
-          <pkt-icon class="nav-menu-item__icon" name="bullseye" />
+          <img class="site-logo" src="/logo.png" alt="Spartao" />
           <span>{{ siteMenuLabel }}</span>
         </NavMenuText>
       </NavMenu>
@@ -238,6 +238,15 @@ const showToolbar = computed(() => {
   > :deep(.nav-menu-item__inner) {
     font-weight: 500;
   }
+}
+
+// Spartao logo (white on black, rounded) at the start of the header.
+.site-logo {
+  display: block;
+  flex-shrink: 0;
+  width: auto;
+  height: 1.5rem;
+  margin-right: 0.5rem;
 }
 
 .item-menu {
