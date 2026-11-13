@@ -19,4 +19,9 @@ export default {
     type: 'reference',
     required: true,
   },
+  // Team members responsible for it (user references).
+  assignees: {
+    type: 'array',
+    required: false,
+  },
 };

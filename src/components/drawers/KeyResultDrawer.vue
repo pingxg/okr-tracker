@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { doc } from '@/backend/firestore';
 import { useI18n } from 'vue-i18n';
@@ -16,6 +16,8 @@ import { BtnSave, BtnDelete, BtnCancel } from '@/components/generic/form';
 import ArchivedRestore from '@/components/ArchivedRestore.vue';
 import PagedDrawerWrapper from '@/components/drawers/PagedDrawerWrapper.vue';
 import syncObjectiveContributors from '@/util/objectiveContributors';
+import { assigneeIds, teamIds } from '@/util/assignees';
+import AssigneesField from '@/components/forms/AssigneesField.vue';
 
 const i18n = useI18n();
 const toast = useToast();
@@ -30,10 +32,11 @@ const props = defineProps({
 
 const emit = defineEmits(['create', 'update', 'archive', 'restore', 'add-key-result']);
 
-const { user, isAdminOfCurrentItemOrganization, isSuperAdmin } = storeToRefs(
-  useAuthStore()
+const authStore = useAuthStore();
+const { user, isAdminOfCurrentItemOrganization, isSuperAdmin } = storeToRefs(authStore);
+const { organizationTree, organization, departments, products } = storeToRefs(
+  useActiveOrganizationStore()
 );
-const { organizationTree } = storeToRefs(useActiveOrganizationStore());
 const { item: activeItem } = storeToRefs(useActiveItemStore());
 const { objective: activeObjective, objectiveRef: activeObjectiveRef } = storeToRefs(
   useActiveObjectiveStore()
@@ -77,6 +80,33 @@ const ownerOptions = computed(() => {
   return options;
 });
 
+// Reassigning, moving and archiving an assigned key result is for admins;
+// while nobody is assigned, every team member may do it.
+const canManage = computed(
+  () =>
+    !isEditMode.value || !keyResult.value || authStore.canManageRecord(keyResult.value)
+);
+
+// The selected owner (organization, department or team) with its members.
+const selectedParent = computed(() => {
+  const id = formData.value.parent?.value?.split('/').pop();
+  return (
+    [organization.value, ...departments.value, ...products.value].find(
+      (node) => node?.id === id
+    ) || null
+  );
+});
+
+// Assignees must belong to the owner's team.
+watch(selectedParent, (parent) => {
+  if (parent && formData.value.assignees?.length) {
+    const members = teamIds(parent);
+    formData.value.assignees = formData.value.assignees.filter((id) =>
+      members.includes(id)
+    );
+  }
+});
+
 onMounted(async () => {
   formData.value = {
     unit: i18n.t('keyResult.defaultUnit'),
@@ -84,6 +114,7 @@ onMounted(async () => {
     weight: 1,
     startValue: 0,
     targetValue: 100,
+    assignees: [],
   };
 
   await keyResultPromise.value;
@@ -102,6 +133,7 @@ onMounted(async () => {
     formData.value.startValue = startValue;
     formData.value.targetValue = targetValue;
     formData.value.weight = weight;
+    formData.value.assignees = assigneeIds(keyResult.value);
   }
 });
 
@@ -136,6 +168,11 @@ async function save() {
       weight: weight || 1,
       parent: doc(db, parent.value),
     };
+
+    // Only sent by those who may change it (the server checks this too).
+    if (canManage.value) {
+      data.assignees = (formData.value.assignees || []).map((id) => doc(db, 'users', id));
+    }
 
     if (keyResult.value) {
       // Update existing key result
@@ -223,13 +260,20 @@ async function restore() {
             v-model="formData.parent"
             input-type="custom-select"
             name="owner"
-            :disabled="ownerOptions.length === 1 || isArchived"
+            :disabled="ownerOptions.length === 1 || isArchived || !canManage"
             :options="ownerOptions"
             :label="$t('admin.keyResult.owner.label')"
             :store-object="true"
             :helptext="$t('admin.keyResult.owner.help')"
             :can-clear="false"
             rules="required"
+          />
+
+          <AssigneesField
+            v-model="formData.assignees"
+            :parent="selectedParent"
+            :disabled="isArchived || !canManage"
+            :helptext="canManage ? null : $t('assignees.locked')"
           />
         </template>
 
@@ -323,8 +367,12 @@ async function restore() {
 
     <template #footer="{ isDone }">
       <template v-if="isEditMode && !isDone">
-        <ArchivedRestore v-if="isArchived" :restore="restore" object-type="keyResult" />
-        <div v-else class="button-row">
+        <ArchivedRestore
+          v-if="isArchived && canManage"
+          :restore="restore"
+          object-type="keyResult"
+        />
+        <div v-else-if="!isArchived && canManage" class="button-row">
           <BtnDelete
             :disabled="isLoading"
             :text="$t('admin.keyResult.delete')"

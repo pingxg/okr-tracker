@@ -1,8 +1,15 @@
 <script setup>
 import ProgressBar from '@/components/ProgressBar.vue';
 import ItemTag from '@/components/ItemTag.vue';
+import AssigneeNames from '@/components/AssigneeNames.vue';
 
 defineProps({
+  // The key result itself, for showing who it is assigned to.
+  record: {
+    type: Object,
+    required: false,
+    default: null,
+  },
   route: {
     type: Object,
     required: true,
@@ -55,6 +62,7 @@ defineProps({
         <div>
           <ProgressBar :progression="progression" compact />
           <ItemTag v-if="owner" :item="owner" class="pkt-txt-12-light" />
+          <AssigneeNames v-if="record" :record="record" class="mt-size-8" />
         </div>
       </div>
     </a>

@@ -143,6 +143,97 @@ async function objectiveParentIsItemOrItemParent(data, getAfter) {
   return false;
 }
 
+// --- assignees of key results and measurements ---------------------------------
+//
+// A key result or measurement (KPI) can be assigned to one or more members of
+// its parent's team (`assignees`, user references).
+//   - Not assigned: every member of the parent team may edit it (as before).
+//   - Assigned: only the assignees edit it and record progress; other members
+//     can only read it. Assignees cannot reassign, move or archive it.
+//   - Super admins and admins of the organization may do everything.
+
+/** Fields only admins (or members, while nobody is assigned) may change. */
+const MANAGED_FIELDS = ['assignees', 'parent', 'objective', 'archived'];
+
+/** A change of only these fields is a reorder of the key result list. */
+const ORDER_FIELDS = ['order', 'edited', 'editedBy'];
+
+/** User paths of the assignees, or null when the list is malformed. */
+function assigneePaths(data) {
+  const list = data?.assignees;
+  if (list === undefined || list === null) {
+    return [];
+  }
+  if (!Array.isArray(list)) {
+    return null;
+  }
+  const paths = list.map(refPath);
+  return paths.every((p) => p && collectionOf(p) === 'users') ? paths : null;
+}
+
+/** Every assignee is a member of the record's parent team. */
+async function assigneesInTeam(data, lookup) {
+  const paths = assigneePaths(data);
+  if (paths === null) {
+    return false;
+  }
+  if (!paths.length) {
+    return true;
+  }
+  const parentPath = refPath(data?.parent);
+  const parent = parentPath ? await lookup(parentPath) : null;
+  return paths.every((p) => hasRef(parent?.team, p));
+}
+
+/** The actor may edit the record and its progress (see above). */
+async function canEditAssigned(actor, data, lookup) {
+  if (await isAdminOfParent(actor, data, lookup)) {
+    return true;
+  }
+  if (!(await isMemberOfParent(actor, data, lookup))) {
+    return false;
+  }
+  const paths = assigneePaths(data) || [];
+  return paths.length === 0 || paths.includes(userPath(actor));
+}
+
+async function canWriteAssigned(actor, op, before, after, getBefore, getAfter) {
+  if (op === 'create') {
+    return (
+      ((await isMemberOfParent(actor, after, getAfter)) ||
+        (await isAdminOfParent(actor, after, getAfter))) &&
+      (await assigneesInTeam(after, getAfter))
+    );
+  }
+  // update
+  if (
+    (await isAdminOfParent(actor, before, getBefore)) &&
+    (await isAdminOfParent(actor, after, getAfter))
+  ) {
+    return assigneesInTeam(after, getAfter);
+  }
+  if (!(await isMemberOfParent(actor, before, getBefore))) {
+    return false;
+  }
+  const changed = affectedKeys(before, after);
+  // Reordering the list of key results is arranging, not editing: any team
+  // member may still do it.
+  if (changed.every((key) => ORDER_FIELDS.includes(key))) {
+    return true;
+  }
+  const assigned = assigneePaths(before) || [];
+  if (!assigned.length) {
+    return (
+      (await isMemberOfParent(actor, after, getAfter)) &&
+      (await assigneesInTeam(after, getAfter))
+    );
+  }
+  if (!assigned.includes(userPath(actor))) {
+    return false;
+  }
+  return !changed.some((key) => MANAGED_FIELDS.includes(key));
+}
+
 /** Keys whose values differ between two documents. */
 function affectedKeys(before = {}, after = {}) {
   const keys = new Set([...Object.keys(before || {}), ...Object.keys(after || {})]);
@@ -277,8 +368,7 @@ export async function canWrite(actor, change, ctx) {
       }
       return (
         superAdmin ||
-        (await isMemberOfParent(actor, after, getAfter)) ||
-        (await isAdminOfParent(actor, after, getAfter))
+        (await canWriteAssigned(actor, op, before, after, getBefore, getAfter))
       );
 
     case 'objectives':
@@ -303,7 +393,17 @@ export async function canWrite(actor, change, ctx) {
 
     case 'keyResults/*/progress':
     case 'kpis/*/progress':
-    case 'kpis/*/goals':
+    case 'kpis/*/goals': {
+      if (!isSignedIn(actor)) {
+        return false;
+      }
+      if (superAdmin) {
+        return true;
+      }
+      // Progress and goals follow the key result / measurement they belong to.
+      return await canEditAssigned(actor, await getAfter(parentDocPath), getAfter);
+    }
+
     case 'apiClients/*/secrets': {
       if (!isSignedIn(actor)) {
         return false;

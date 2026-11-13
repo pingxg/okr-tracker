@@ -11,6 +11,7 @@ import defaultPreferences from '@/db/User/defaultPreferences';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';
 import { useActiveItemStore } from '@/store/activeItem';
 import { useTrackerUser } from '@/composables/user';
+import { canEditAssigned, canManageAssigned } from '@/util/assignees';
 
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter();
@@ -168,6 +169,36 @@ export const useAuthStore = defineStore('auth', () => {
     return item.team.map(({ id }) => id).includes(user.value.id);
   });
 
+  /**
+   * The organization, department or team a key result or measurement belongs
+   * to, with its team, looked up in the active organization.
+   */
+  function recordParent(record) {
+    const parent = record?.parent;
+    if (!parent) {
+      return null;
+    }
+    const id = typeof parent === 'string' ? parent.split('/').pop() : parent.id;
+    const { organization, departments, products } = organizationStore;
+    const known = [organization, ...(departments || []), ...(products || [])].find(
+      (node) => node?.id === id
+    );
+    return known || (typeof parent === 'object' ? parent : null);
+  }
+
+  const assignedCheck = (record) => ({
+    record,
+    parent: recordParent(record),
+    userId: user.value?.id,
+    isAdmin: isSuperAdmin.value || isAdminOfCurrentItemOrganization.value,
+  });
+
+  /** May edit the key result / measurement and record progress on it. */
+  const canEditRecord = (record) => canEditAssigned(assignedCheck(record));
+
+  /** May reassign, move or archive the key result / measurement. */
+  const canManageRecord = (record) => canManageAssigned(assignedCheck(record));
+
   const hasParentEditRights = computed(() => {
     /**
      * Return `true` if the current user is an admin of the active item or a
@@ -256,6 +287,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAdminOfCurrentItemOrganization,
     hasEditRights,
     hasParentEditRights,
+    canEditRecord,
+    canManageRecord,
     isMemberOfCurrentItemOrganization,
 
     preferences,

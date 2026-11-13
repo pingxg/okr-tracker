@@ -688,5 +688,11 @@
       "heading": "Nothing archived",
       "body": "Deleted objectives, key results and measurements show up here."
     }
+  },
+  "assignees": {
+    "label": "Assigned to",
+    "help": "Team members responsible for it; you can pick several. Once assigned, only they and admins can edit it and record progress; other members can only view it.",
+    "locked": "Someone is assigned. Only admins can change who is assigned, move or delete it.",
+    "shown": "Assigned to: {names}"
   }
 }

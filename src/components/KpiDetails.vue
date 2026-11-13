@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useToast } from 'vue-toast-notification';
 import { useI18n } from 'vue-i18n';
@@ -14,12 +14,16 @@ import ProgressModal from '@/components/modals/ProgressModal/KPIProgressModal.vu
 import WidgetKpiProgressGraph from '@/components/widgets/WidgetKpiProgressGraph.vue';
 import WidgetKpiProgressHistory from '@/components/widgets/WidgetKpiProgressHistory.vue';
 import WidgetKpiProgressStats from '@/components/widgets/WidgetKpiProgressStats.vue';
+import AssigneeNames from '@/components/AssigneeNames.vue';
 
 const i18n = useI18n();
 const toast = useToast();
 
-const { hasEditRights } = storeToRefs(useAuthStore());
+const authStore = useAuthStore();
 const { kpi } = storeToRefs(useActiveKpiStore());
+
+// Admins, the assignees, or any team member while nobody is assigned.
+const canEdit = computed(() => Boolean(kpi.value) && authStore.canEditRecord(kpi.value));
 
 const showValueModal = ref(false);
 const chosenProgressRecord = ref(null);
@@ -73,7 +77,7 @@ async function deleteProgressRecord(id, modalCloseHandler) {
     <header class="kpi-details__header">
       <h2>{{ kpi.name }}</h2>
       <pkt-button
-        v-if="hasEditRights"
+        v-if="canEdit"
         v-tooltip="{ content: $t('admin.measurement.change'), placement: 'left' }"
         skin="tertiary"
         variant="icon-only"
@@ -84,6 +88,8 @@ async function deleteProgressRecord(id, modalCloseHandler) {
         <span>{{ $t('admin.measurement.change') }}</span>
       </pkt-button>
     </header>
+
+    <AssigneeNames :record="kpi" class="mb-size-16" />
 
     <HTMLOutput
       v-if="kpi.description"
@@ -108,7 +114,7 @@ async function deleteProgressRecord(id, modalCloseHandler) {
     />
 
     <ProgressModal
-      v-if="hasEditRights && showValueModal"
+      v-if="canEdit && showValueModal"
       :kpi="kpi"
       :record="chosenProgressRecord"
       @create-record="createProgressRecord"
@@ -118,7 +124,7 @@ async function deleteProgressRecord(id, modalCloseHandler) {
     />
 
     <EditGoalsModal
-      v-if="hasEditRights && showEditGoalsModal"
+      v-if="canEdit && showEditGoalsModal"
       :kpi="kpi"
       @close="showEditGoalsModal = false"
     />

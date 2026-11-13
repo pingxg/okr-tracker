@@ -128,6 +128,7 @@ function keyResultLinkProps(keyResult) {
       params: { objectiveId: objective.id, keyResultId: keyResult.id },
     },
     title: keyResult.name,
+    record: keyResult,
     progression: keyResult.progression,
     owner: keyResult.parent?.name ? keyResult.parent : null,
     draggable: hasEditRights.value,

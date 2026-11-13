@@ -4,6 +4,11 @@ import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toast-notification';
 import { useActiveItemStore } from '@/store/activeItem';
+import { useAuthStore } from '@/store/auth';
+import { doc } from '@/backend/firestore';
+import { db } from '@/config/backend';
+import { assigneeIds } from '@/util/assignees';
+import AssigneesField from '@/components/forms/AssigneesField.vue';
 import { useKpi } from '@/composables/kpi';
 import {
   kpiFormats,
@@ -33,7 +38,8 @@ const props = defineProps({
 
 const emit = defineEmits(['create', 'update', 'archive', 'restore']);
 
-const { itemRef: activeItemRef } = storeToRefs(useActiveItemStore());
+const { item: activeItem, itemRef: activeItemRef } = storeToRefs(useActiveItemStore());
+const authStore = useAuthStore();
 const { kpi, kpiRef, kpiPromise } = useKpi(props.kpiId);
 
 const drawer = ref(null);
@@ -43,6 +49,13 @@ const isLoading = ref(false);
 const isArchived = computed(() => kpi.value && kpi.value.archived);
 
 const formData = ref({});
+// User ids of the people the measurement is assigned to.
+const assignees = ref([]);
+// Reassigning and archiving an assigned measurement is for admins; while
+// nobody is assigned, every team member may do it.
+const canManage = computed(
+  () => !isEditMode.value || !kpi.value || authStore.canManageRecord(kpi.value)
+);
 
 const formatOptions = kpiFormats();
 const startValueOptions = kpiStartValues();
@@ -75,6 +88,7 @@ onMounted(async () => {
         key in kpi.value ? kpi.value[key] : formData.value[key],
       ])
     );
+    assignees.value = assigneeIds(kpi.value);
   }
 });
 
@@ -89,14 +103,20 @@ async function save() {
   isLoading.value = true;
 
   try {
+    const data = { ...formData.value };
+    // Only sent by those who may change it (the server checks this too).
+    if (canManage.value) {
+      data.assignees = assignees.value.map((id) => doc(db, 'users', id));
+    }
+
     if (kpi.value) {
       // Update existing KPI
-      await Kpi.update(kpi.value.id, formData.value);
+      await Kpi.update(kpi.value.id, data);
       emit('update', kpiRef.value);
     } else {
       // Create new KPI
       const createdKpiRef = await Kpi.create({
-        ...formData.value,
+        ...data,
         parent: activeItemRef.value,
       });
       kpiRef.value = createdKpiRef;
@@ -165,6 +185,15 @@ async function restore() {
             name="description"
             :disabled="isArchived"
             :label="$t('fields.description')"
+          />
+
+          <AssigneesField
+            v-model="assignees"
+            :parent="
+              kpi?.parent && typeof kpi.parent === 'object' ? kpi.parent : activeItem
+            "
+            :disabled="isArchived || !canManage"
+            :helptext="canManage ? null : $t('assignees.locked')"
           />
         </template>
 
@@ -263,11 +292,11 @@ async function restore() {
     <template #footer="{ isDone }">
       <template v-if="isEditMode && !isDone">
         <ArchivedRestore
-          v-if="isArchived"
+          v-if="isArchived && canManage"
           :restore="restore"
           :text="$t('kpi.archived')"
         />
-        <div v-else class="button-row">
+        <div v-else-if="!isArchived && canManage" class="button-row">
           <BtnDelete
             :disabled="isLoading"
             :text="$t('admin.measurement.delete')"

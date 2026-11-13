@@ -31,4 +31,9 @@ export default {
     type: 'number',
     required: false,
   },
+  // Team members responsible for it (user references).
+  assignees: {
+    type: 'array',
+    required: false,
+  },
 };

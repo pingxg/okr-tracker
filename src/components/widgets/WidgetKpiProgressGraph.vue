@@ -18,8 +18,13 @@ import WidgetWrapper from './WidgetWrapper.vue';
 
 const i18n = useI18n();
 
-const { hasEditRights } = storeToRefs(useAuthStore());
+const authStore = useAuthStore();
 const { kpi, progress, period, goals } = storeToRefs(useActiveKpiStore());
+
+// Admins, the assignees, or any team member while nobody is assigned.
+const hasEditRights = computed(
+  () => Boolean(kpi.value) && authStore.canEditRecord(kpi.value)
+);
 
 const container = ref(null);
 const rendering = ref(false);

@@ -34,7 +34,12 @@ import WidgetWrapper from './WidgetWrapper.vue';
 const i18n = useI18n();
 
 const { kpi, kpiRef, period } = storeToRefs(useActiveKpiStore());
-const { hasEditRights } = storeToRefs(useAuthStore());
+const authStore = useAuthStore();
+
+// Admins, the assignees, or any team member while nobody is assigned.
+const hasEditRights = computed(
+  () => Boolean(kpi.value) && authStore.canEditRecord(kpi.value)
+);
 
 const showComments = useLocalStorage('show-kpi-progress-comments', true);
 const listLimit = ref(10);

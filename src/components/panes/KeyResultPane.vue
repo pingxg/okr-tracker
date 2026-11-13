@@ -27,15 +27,14 @@ import HTMLOutput from '@/components/HTMLOutput.vue';
 import ProgressModal from '@/components/modals/ProgressModal/ProgressModal.vue';
 import ProgressBar from '@/components/ProgressBar.vue';
 import EmptyState from '@/components/EmptyState.vue';
+import AssigneeNames from '@/components/AssigneeNames.vue';
 import FadeTransition from '@/components/generic/transitions/FadeTransition.vue';
 
 const router = useRouter();
 const i18n = useI18n();
 const toast = useToast();
 
-const { user, isSuperAdmin, isAdminOfCurrentItemOrganization } = storeToRefs(
-  useAuthStore()
-);
+const authStore = useAuthStore();
 const { item } = storeToRefs(useActiveItemStore());
 const { objective, objectivePeriod } = storeToRefs(useActiveObjectiveStore());
 const {
@@ -59,15 +58,9 @@ const { breadcrumbs, navigate } = useRouterBreadcrumbs(() => [
   { text: keyResult.value.name },
 ]);
 
-const isMemberOfKeyResultParent = computed(() =>
-  keyResult.value.parent.team?.includes(user.value.path)
-);
-
+// Admins, the assignees, or any team member while nobody is assigned.
 const canEdit = computed(
-  () =>
-    isSuperAdmin.value ||
-    isAdminOfCurrentItemOrganization.value ||
-    isMemberOfKeyResultParent.value
+  () => Boolean(keyResult.value) && authStore.canEditRecord(keyResult.value)
 );
 
 const chartOptions = computed(() => {
@@ -244,6 +237,8 @@ async function deleteProgressRecord(id, modalCloseHandler) {
             <span>{{ $t('btn.updateKeyResult') }}</span>
           </pkt-button>
         </div>
+
+        <AssigneeNames :record="keyResult" class="mb-size-16" />
 
         <HTMLOutput
           v-if="keyResult.description"
