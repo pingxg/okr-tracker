@@ -75,57 +75,77 @@ export function organizationIdOf(itemPath, item) {
   return collectionOf(itemPath) === 'organizations' ? idOf(itemPath) : null;
 }
 
+export const ROLE_MANAGER = 'projectManager';
+export const ROLE_COORDINATOR = 'projectCoordinator';
+
+/** The actor's role in an organization ('projectManager' | 'projectCoordinator' | null). */
+export const roleIn = (actor, orgId) => {
+  const roles = actor.doc?.roles;
+  return orgId && roles && typeof roles === 'object' ? roles[orgId] || null : null;
+};
+
 export function itemRights(actor, itemPath, item) {
   const me = `users/${actor.email}`;
   const superAdmin = actor.doc?.superAdmin === true;
   const orgId = organizationIdOf(itemPath, item);
   const orgAdmin = Boolean(orgId) && (actor.doc?.admin || []).includes(orgId);
   const member = refList(item?.team).includes(me);
+  const role = member ? roleIn(actor, orgId) : null;
   return {
     superAdmin,
     orgAdmin,
     member,
+    role,
     // create/edit objectives, create key results and measurements here
-    canEditOkrs: superAdmin || orgAdmin || member,
+    canEditOkrs: superAdmin || orgAdmin || role === ROLE_MANAGER,
   };
+}
+
+/** Why the actor may not create or edit objectives here, in plain words. */
+export function okrRefusal(item, itemName) {
+  if (!item.member) {
+    return `you are not a member of ${itemName} or an admin of its organization.`;
+  }
+  if (item.role === ROLE_COORDINATOR) {
+    return `you are a project coordinator in ${itemName}; only project managers and admins create and edit objectives, key results and measurements.`;
+  }
+  return `you have no role in ${itemName} yet (read only); ask an admin to make you a project manager or coordinator.`;
 }
 
 /** Rights on a key result or measurement, with the reason in plain words. */
 export function recordRights(actor, record, parentPath, parent) {
   const me = `users/${actor.email}`;
   const item = itemRights(actor, parentPath, parent);
-  const admin = item.superAdmin || item.orgAdmin;
   const assignees = refList(record?.assignees);
   const assigned = assignees.includes(me);
 
-  let canEdit;
-  let canManage;
+  let canEdit = false;
+  let canManage = false;
   let reason;
-  if (admin) {
+  if (item.superAdmin || item.orgAdmin) {
     canEdit = true;
     canManage = true;
     reason = item.superAdmin
       ? 'You are a super admin.'
       : 'You are an admin of this organization.';
   } else if (!item.member) {
-    canEdit = false;
-    canManage = false;
     reason = 'You are not a member of the team it belongs to, so you can only read it.';
-  } else if (!assignees.length) {
+  } else if (item.role === ROLE_MANAGER) {
     canEdit = true;
     canManage = true;
-    reason = 'Nobody is assigned, so every member of its team may edit it.';
-  } else if (assigned) {
-    canEdit = true;
-    canManage = false;
+    reason = 'You are a project manager of the team it belongs to.';
+  } else if (item.role !== ROLE_COORDINATOR) {
     reason =
-      'You are assigned to it: you may edit it and record progress, but only admins can change who is assigned, move or archive it.';
+      'You have no role in this team yet, so you can only read it; ask an admin to make you a project manager or coordinator.';
+  } else if (!assignees.length || assigned) {
+    canEdit = true;
+    reason = assigned
+      ? 'You are a project coordinator assigned to it: you may edit it and record progress, but only project managers and admins assign, move or archive.'
+      : 'Nobody is assigned and you are a project coordinator of its team: you may edit it and record progress, but not assign, move or archive it.';
   } else {
-    canEdit = false;
-    canManage = false;
     reason = `It is assigned to ${assignees
       .map(emailOf)
-      .join(', ')}; only they and admins may edit it. You can only read it.`;
+      .join(', ')}; as a project coordinator you can only read it.`;
   }
   return { canEdit, canRecordProgress: canEdit, canManage, reason };
 }

@@ -8,6 +8,7 @@ import { useTrackerStore } from '@/store/tracker';
 import { useTrackerUser } from '@/composables/user';
 import User from '@/db/User';
 import { BtnSave, BtnDelete } from '@/components/generic/form';
+import { jobPositions, roleIn } from '@/config/jobPositions';
 
 const toast = useToast();
 const i18n = useI18n();
@@ -60,22 +61,44 @@ watch(
           .filter((oid) => manageableIds.value.includes(oid))
           .map((oid) => manageableOrgs.value.find((o) => o.id === oid)),
         superAdmin: superAdmin || false,
+        // Role per organization the editor manages.
+        roles: Object.fromEntries(
+          manageableIds.value.map((oid) => [oid, roleIn(user.value, oid)])
+        ),
       };
     }
   },
   { immediate: true }
 );
 
+const roleOptions = computed(() =>
+  jobPositions.map((role) => ({ value: role, label: i18n.t(`user.position.${role}`) }))
+);
+
+/** Roles to save: unchanged for other organizations, edited for managed ones. */
+function rolesToSave() {
+  const kept = Object.fromEntries(
+    Object.entries(user.value.roles || {}).filter(
+      ([oid]) => !manageableIds.value.includes(oid)
+    )
+  );
+  const edited = Object.fromEntries(
+    Object.entries(formData.value.roles).filter(([, role]) => role)
+  );
+  return { ...kept, ...edited };
+}
+
 async function update() {
   isLoading.value = true;
   try {
-    const { superAdmin, ...rest } = formData.value;
+    const { superAdmin, roles, ...rest } = formData.value;
     await User.update(user.value, {
       ...rest,
       admin: [
         ...otherAdminOrgs.value.map((org) => org.id),
         ...formData.value.admin.map((org) => org.id),
       ],
+      roles: rolesToSave(),
       // Only super admins grant super admin (the server checks this too).
       ...(isSuperAdmin.value ? { superAdmin } : {}),
     });
@@ -148,6 +171,20 @@ async function remove() {
         label-prop="name"
         :store-object="true"
         :options="manageableOrgs"
+      />
+
+      <!-- Role per organization: decides what the person may do in its
+           departments and teams. -->
+      <FormComponent
+        v-for="org in manageableOrgs"
+        :key="org.id"
+        v-model="formData.roles[org.id]"
+        input-type="custom-select"
+        :name="`role-${org.id}`"
+        :label="$t('admin.users.roleIn', { org: org.name })"
+        :helptext="$t('admin.users.roleHelp')"
+        :options="roleOptions"
+        :placeholder="$t('user.position.none')"
       />
 
       <FormComponent

@@ -1,6 +1,11 @@
 /**
- * Assignees of key results and measurements: who may edit them and record
- * progress. Pure policy checks, no database needed.
+ * Roles and assignees on key results and measurements: who may create, edit,
+ * assign, archive and record progress. Pure policy checks, no database.
+ *
+ *   project manager      manages everything in their teams
+ *   project coordinator  edits / records progress on what is assigned to them
+ *                        or to nobody; no creating, assigning or archiving
+ *   no role              reads only
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,16 +13,25 @@ import { canWrite } from '../src/policy/rules.js';
 
 const ref = (path) => ({ __ref: path });
 const user = (email) => ref(`users/${email}`);
+const role = (r) => ({ superAdmin: false, admin: [], roles: { org1: r } });
 
 const users = {
   super: { email: 'super@x.fi', doc: { superAdmin: true, admin: [] } },
   orgAdmin: { email: 'orgadmin@x.fi', doc: { superAdmin: false, admin: ['org1'] } },
-  member: { email: 'member@x.fi', doc: { superAdmin: false, admin: [] } },
-  assignee: { email: 'assignee@x.fi', doc: { superAdmin: false, admin: [] } },
-  outsider: { email: 'outsider@x.fi', doc: { superAdmin: false, admin: [] } },
+  pm: { email: 'pm@x.fi', doc: role('projectManager') },
+  pc: { email: 'pc@x.fi', doc: role('projectCoordinator') },
+  pc2: { email: 'pc2@x.fi', doc: role('projectCoordinator') },
+  norole: { email: 'norole@x.fi', doc: { superAdmin: false, admin: [] } },
+  // project manager in org1, but not on team1
+  pmElsewhere: { email: 'pmx@x.fi', doc: role('projectManager') },
+  // on team1, but their manager role is for another organization
+  pmOtherOrg: {
+    email: 'pmo@x.fi',
+    doc: { superAdmin: false, admin: [], roles: { org2: 'projectManager' } },
+  },
 };
 
-const team = [user('member@x.fi'), user('assignee@x.fi')];
+const team = ['pm', 'pc', 'pc2', 'norole', 'pmOtherOrg'].map((k) => user(users[k].email));
 
 const world = {
   'organizations/org1': { name: 'Org', team: [] },
@@ -31,7 +45,7 @@ const world = {
     name: 'Other team',
     organization: ref('organizations/org1'),
     department: ref('departments/dep1'),
-    team: [user('outsider@x.fi')],
+    team: [user('pmx@x.fi')],
   },
   'objectives/o1': { name: 'O', parent: ref('products/team1') },
   'keyResults/open': {
@@ -40,15 +54,15 @@ const world = {
     objective: ref('objectives/o1'),
   },
   'keyResults/kA': {
-    name: 'Assigned',
+    name: 'Assigned to pc',
     parent: ref('products/team1'),
     objective: ref('objectives/o1'),
-    assignees: [user('assignee@x.fi')],
+    assignees: [user('pc@x.fi')],
   },
   'kpis/kpiA': {
     name: 'Assigned KPI',
     parent: ref('products/team1'),
-    assignees: [user('assignee@x.fi')],
+    assignees: [user('pc@x.fi')],
   },
 };
 
@@ -67,154 +81,150 @@ function write(actor, path, before, after, overrides = {}) {
 const update = (actor, path, changes) =>
   write(actor, path, world[path], { ...world[path], ...changes });
 
-test('team members create key results and assign team members only', async () => {
-  const kr = (assignees) => ({
-    name: 'New',
-    parent: ref('products/team1'),
-    objective: ref('objectives/o1'),
-    assignees,
-  });
-  assert.equal(await write(users.member, 'keyResults/n', null, kr([])), true);
+const newKr = (assignees = []) => ({
+  name: 'New',
+  parent: ref('products/team1'),
+  objective: ref('objectives/o1'),
+  assignees,
+});
+
+test('only project managers (and admins) create objectives and key results', async () => {
+  const objective = { name: 'New', parent: ref('products/team1') };
+  assert.equal(await write(users.pm, 'objectives/n', null, objective), true);
+  assert.equal(await write(users.pc, 'objectives/n', null, objective), false);
+  assert.equal(await write(users.norole, 'objectives/n', null, objective), false);
+  assert.equal(await write(users.orgAdmin, 'objectives/n', null, objective), true);
+
   assert.equal(
-    await write(users.member, 'keyResults/n', null, kr([user('assignee@x.fi')])),
+    await write(users.pm, 'keyResults/n', null, newKr([user('pc@x.fi')])),
     true
   );
+  assert.equal(await write(users.pc, 'keyResults/n', null, newKr()), false);
+  assert.equal(await write(users.norole, 'keyResults/n', null, newKr()), false);
   assert.equal(
-    await write(users.member, 'keyResults/n', null, kr([user('outsider@x.fi')])),
+    await write(users.pmElsewhere, 'keyResults/n', null, newKr()),
     false,
-    'assignee outside the team'
+    'manager, but not on this team'
   );
   assert.equal(
-    await write(users.member, 'keyResults/n', null, kr(['assignee@x.fi'])),
+    await write(users.pmOtherOrg, 'keyResults/n', null, newKr()),
+    false,
+    'manager role belongs to another organization'
+  );
+  assert.equal(
+    await write(users.pm, 'keyResults/n', null, newKr([user('pmx@x.fi')])),
+    false,
+    'assignees must be on the team'
+  );
+  assert.equal(
+    await write(users.pm, 'keyResults/n', null, newKr(['pc@x.fi'])),
     false,
     'malformed assignee'
   );
-  assert.equal(
-    await write(users.outsider, 'keyResults/n', null, kr([])),
-    false,
-    'not a member'
-  );
 });
 
-test('a key result nobody is assigned to: every team member may edit it', async () => {
-  assert.equal(await update(users.member, 'keyResults/open', { name: 'x' }), true);
+test('project managers edit, reassign and archive, also when assigned', async () => {
+  assert.equal(await update(users.pm, 'keyResults/kA', { name: 'x' }), true);
   assert.equal(
-    await update(users.member, 'keyResults/open', {
-      assignees: [user('assignee@x.fi')],
-    }),
+    await update(users.pm, 'keyResults/kA', { assignees: [user('pc2@x.fi')] }),
     true
   );
-  assert.equal(await update(users.outsider, 'keyResults/open', { name: 'x' }), false);
-});
-
-test('an assigned key result: only assignees edit, and not the managed fields', async () => {
-  assert.equal(await update(users.assignee, 'keyResults/kA', { name: 'x' }), true);
-  assert.equal(await update(users.assignee, 'keyResults/kA', { targetValue: 50 }), true);
+  assert.equal(await update(users.pm, 'keyResults/kA', { archived: true }), true);
+  assert.equal(await update(users.pm, 'keyResults/kA', { order: 2 }), true);
   assert.equal(
-    await update(users.member, 'keyResults/kA', { name: 'x' }),
+    await update(users.pm, 'keyResults/kA', { parent: ref('products/team2') }),
     false,
-    'team member who is not assigned'
-  );
-  assert.equal(
-    await update(users.assignee, 'keyResults/kA', {
-      assignees: [user('member@x.fi')],
-    }),
-    false,
-    'assignee cannot reassign'
-  );
-  assert.equal(
-    await update(users.assignee, 'keyResults/kA', { archived: true }),
-    false,
-    'assignee cannot archive'
-  );
-  assert.equal(
-    await update(users.assignee, 'keyResults/kA', { parent: ref('products/team2') }),
-    false,
-    'assignee cannot move it'
+    'cannot move it to a team they do not manage'
   );
 });
 
-test('any team member may still reorder an assigned key result', async () => {
-  assert.equal(await update(users.member, 'keyResults/kA', { order: 3 }), true);
+test('coordinators edit what is assigned to them or to nobody', async () => {
+  assert.equal(await update(users.pc, 'keyResults/kA', { name: 'x' }), true);
+  assert.equal(await update(users.pc, 'keyResults/kA', { targetValue: 50 }), true);
+  assert.equal(await update(users.pc, 'keyResults/open', { name: 'x' }), true);
   assert.equal(
-    await update(users.member, 'keyResults/kA', { order: 3, name: 'x' }),
+    await update(users.pc2, 'keyResults/kA', { name: 'x' }),
     false,
-    'reorder plus a real edit'
+    'assigned to someone else'
   );
-  assert.equal(await update(users.outsider, 'keyResults/kA', { order: 3 }), false);
+  for (const changes of [
+    { assignees: [user('pc2@x.fi')] },
+    { archived: true },
+    { order: 2 },
+    { parent: ref('products/team2') },
+  ]) {
+    assert.equal(
+      await update(users.pc, 'keyResults/kA', changes),
+      false,
+      JSON.stringify(changes)
+    );
+  }
+  assert.equal(
+    await update(users.pc, 'keyResults/open', { assignees: [user('pc@x.fi')] }),
+    false,
+    'coordinators do not assign, even themselves'
+  );
 });
 
-test('admins manage assigned key results, within the team', async () => {
+test('members without a role and outsiders only read', async () => {
+  assert.equal(await update(users.norole, 'keyResults/open', { name: 'x' }), false);
+  assert.equal(await update(users.pmElsewhere, 'keyResults/open', { name: 'x' }), false);
+});
+
+test('admins manage everything, assignees stay on the team', async () => {
   assert.equal(
-    await update(users.orgAdmin, 'keyResults/kA', { assignees: [user('member@x.fi')] }),
+    await update(users.orgAdmin, 'keyResults/kA', { assignees: [user('pm@x.fi')] }),
     true
   );
-  assert.equal(await update(users.orgAdmin, 'keyResults/kA', { archived: true }), true);
   assert.equal(
-    await update(users.orgAdmin, 'keyResults/kA', { assignees: [user('outsider@x.fi')] }),
-    false,
-    'admins also assign team members only'
+    await update(users.orgAdmin, 'keyResults/kA', { assignees: [user('pmx@x.fi')] }),
+    false
   );
   assert.equal(
-    await update(users.super, 'keyResults/kA', { assignees: [user('outsider@x.fi')] }),
+    await update(users.super, 'keyResults/kA', { assignees: [user('pmx@x.fi')] }),
     true
   );
 });
 
 test('an assignee removed from the team loses edit rights', async () => {
-  const overrides = { 'products/team1': { ...world['products/team1'], team: [] } };
+  const removed = { ...world['products/team1'], team: [] };
   const kr = world['keyResults/kA'];
-  // getBefore reads the world as it was; simulate removal for both phases.
   const result = await canWrite(
-    users.assignee,
+    users.pc,
     { path: 'keyResults/kA', before: kr, after: { ...kr, name: 'x' } },
     {
-      getBefore: async (p) => overrides[p] ?? world[p] ?? null,
-      getAfter: async (p) => overrides[p] ?? world[p] ?? null,
+      getBefore: async (p) => (p === 'products/team1' ? removed : world[p] ?? null),
+      getAfter: async (p) => (p === 'products/team1' ? removed : world[p] ?? null),
     }
   );
   assert.equal(result, false);
 });
 
-test('progress follows the key result: assignees, or every member when unassigned', async () => {
-  const value = { value: 1, timestamp: new Date().toISOString() };
+test('progress: managers, and coordinators on their own or unassigned ones', async () => {
+  const value = { value: 1 };
+  assert.equal(await write(users.pc, 'keyResults/kA/progress/p', null, value), true);
+  assert.equal(await write(users.pc2, 'keyResults/kA/progress/p', null, value), false);
+  assert.equal(await write(users.pc2, 'keyResults/open/progress/p', null, value), true);
+  assert.equal(await write(users.pm, 'keyResults/kA/progress/p', null, value), true);
   assert.equal(
-    await write(users.assignee, 'keyResults/kA/progress/p', null, value),
-    true
+    await write(users.norole, 'keyResults/open/progress/p', null, value),
+    false
   );
-  assert.equal(await write(users.member, 'keyResults/kA/progress/p', null, value), false);
   assert.equal(
     await write(users.orgAdmin, 'keyResults/kA/progress/p', null, value),
     true
   );
-  assert.equal(await write(users.super, 'keyResults/kA/progress/p', null, value), true);
-  assert.equal(
-    await write(users.member, 'keyResults/open/progress/p', null, value),
-    true
-  );
-  assert.equal(
-    await write(users.outsider, 'keyResults/open/progress/p', null, value),
-    false
-  );
-  // Deleting a progress value follows the same rule.
-  assert.equal(await write(users.member, 'keyResults/kA/progress/p', value, null), false);
-  assert.equal(
-    await write(users.assignee, 'keyResults/kA/progress/p', value, null),
-    true
-  );
+  assert.equal(await write(users.pc2, 'keyResults/kA/progress/p', value, null), false);
 });
 
 test('measurements: same rules for the KPI, its progress and its goals', async () => {
-  assert.equal(await update(users.assignee, 'kpis/kpiA', { name: 'x' }), true);
-  assert.equal(await update(users.member, 'kpis/kpiA', { name: 'x' }), false);
-  assert.equal(
-    await update(users.assignee, 'kpis/kpiA', { assignees: [] }),
-    false,
-    'assignee cannot unassign'
-  );
+  assert.equal(await update(users.pc, 'kpis/kpiA', { name: 'x' }), true);
+  assert.equal(await update(users.pc2, 'kpis/kpiA', { name: 'x' }), false);
+  assert.equal(await update(users.pc, 'kpis/kpiA', { assignees: [] }), false);
+  assert.equal(await update(users.pm, 'kpis/kpiA', { assignees: [] }), true);
   const value = { value: 1 };
-  assert.equal(await write(users.assignee, 'kpis/kpiA/progress/p', null, value), true);
-  assert.equal(await write(users.member, 'kpis/kpiA/progress/p', null, value), false);
-  assert.equal(await write(users.assignee, 'kpis/kpiA/goals/g', null, value), true);
-  assert.equal(await write(users.member, 'kpis/kpiA/goals/g', null, value), false);
+  assert.equal(await write(users.pc, 'kpis/kpiA/progress/p', null, value), true);
+  assert.equal(await write(users.pc2, 'kpis/kpiA/progress/p', null, value), false);
+  assert.equal(await write(users.pc, 'kpis/kpiA/goals/g', null, value), true);
+  assert.equal(await write(users.norole, 'kpis/kpiA/goals/g', null, value), false);
 });

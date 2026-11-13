@@ -16,6 +16,8 @@ import {
   edited,
   emailOf,
   itemRights,
+  okrRefusal,
+  roleIn,
   limit,
   orderBy,
   plain,
@@ -39,10 +41,12 @@ Start with get_my_permissions to learn who the person is and what they may chang
 
 Rules the server enforces on every change:
 - Super admins may do everything; organization admins everything inside their organization.
-- Members of an item may create and edit its objectives, and create key results and measurements there.
-- A key result or measurement nobody is assigned to may be edited by every member of its team.
-- Once assigned, only the assignees and admins may edit it or record progress; assignees cannot reassign, move or archive it. Other members can only read it.
+- Roles are set per organization by its admins. In the departments and teams a person is a member of:
+  - project manager: creates, edits and archives objectives, key results and measurements, assigns people (also changes existing assignees), records progress, and edits the item's texts and member list;
+  - project coordinator: records progress and edits key results and measurements assigned to them or to nobody; cannot create, assign, move or archive;
+  - member without a role: reads only.
 - Assignees must be members of the item's team.
+- Everyone signed in can read everything.
 Every read result says, per key result and measurement, whether the person may edit it and why. If a change is refused, explain the reason to the person instead of retrying. Nothing is deleted permanently: "archive" can be undone with set_archived.`;
 
 const json = (value) => ({
@@ -201,6 +205,20 @@ export function buildMcpServer(actor) {
         adminOfOrganizations: [...adminOrgs.values()]
           .filter((d) => d.exists)
           .map((d) => ({ ref: d.path, name: d.data.name })),
+        rolesByOrganization: await (async () => {
+          const ids = Object.keys(actor.doc.roles || {}).filter((id) =>
+            roleIn(actor, id)
+          );
+          const orgs = await readMany(
+            actor,
+            ids.map((id) => `organizations/${id}`)
+          );
+          return ids.map((id) => ({
+            organization: `organizations/${id}`,
+            name: orgs.get(`organizations/${id}`)?.data?.name || null,
+            role: roleIn(actor, id),
+          }));
+        })(),
         memberOf: memberships,
         assignedToYou: {
           keyResults: krs.map((k) => ({
@@ -434,7 +452,7 @@ export function buildMcpServer(actor) {
         ],
         itemRights(actor, itemPath, item).canEditOkrs
           ? null
-          : `you are not a member of ${item.name} or an admin of its organization.`
+          : okrRefusal(itemRights(actor, itemPath, item), item.name)
       );
       return { ok: true, objectiveId: path.split('/')[1] };
     })
@@ -482,7 +500,7 @@ export function buildMcpServer(actor) {
         [{ type: 'update', path, data: { ...changes, ...edited(actor) } }],
         itemRights(actor, parentPath, parent).canEditOkrs
           ? null
-          : `you are not a member of ${parent?.name} or an admin of its organization.`
+          : okrRefusal(itemRights(actor, parentPath, parent), parent?.name)
       );
       return { ok: true };
     })
@@ -537,7 +555,7 @@ export function buildMcpServer(actor) {
         ],
         itemRights(actor, ownerPath, owner).canEditOkrs
           ? `every assignee must be a member of ${owner.name}.`
-          : `you are not a member of ${owner.name} or an admin of its organization.`
+          : okrRefusal(itemRights(actor, ownerPath, owner), owner.name)
       );
       await syncObjectiveContributors(actor, objectivePath);
       return { ok: true, keyResultId: path.split('/')[1] };
@@ -807,7 +825,7 @@ export function buildMcpServer(actor) {
         ],
         itemRights(actor, itemPath, item).canEditOkrs
           ? `every assignee must be a member of ${item.name}.`
-          : `you are not a member of ${item.name} or an admin of its organization.`
+          : okrRefusal(itemRights(actor, itemPath, item), item.name)
       );
       return { ok: true, measurementId: path.split('/')[1] };
     })
@@ -880,13 +898,14 @@ export function buildMcpServer(actor) {
         const data = await readDoc(actor, `objectives/${id}`);
         const parentPath = refPath(data.parent);
         const parent = (await readMany(actor, [parentPath])).get(parentPath)?.data;
-        reason = `you are not a member of ${parent?.name} or an admin of its organization.`;
+        reason = okrRefusal(itemRights(actor, parentPath, parent), parent?.name);
       } else {
         const record = await loadRecord(actor, collection, id);
         if (record.rights.canManage) {
           reason = null;
         } else if (record.rights.canEdit) {
-          reason = 'assignees cannot archive or restore; ask an admin.';
+          reason =
+            'project coordinators cannot archive or restore; ask a project manager or an admin.';
         } else {
           reason = record.rights.reason;
         }

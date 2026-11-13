@@ -398,7 +398,7 @@
       "delete": "删除 {name}",
       "slugChangeInfo": "修改名称后，它的访问地址可能也会改变。如果地址改变，保存后会自动跳转到新地址。",
       "redirectInfo": "{count} 秒后将自动跳转。",
-      "teamAdminsOnly": "成员名单和所属单位只有组织管理员可以修改。"
+      "teamRolesHelp": "成员能做什么取决于管理员给他设置的角色：项目经理可以管理，项目协调员录入进度，未设置角色只能查看。"
     },
     "objective": {
       "new": "新目标",
@@ -461,7 +461,9 @@
       "registerUsersButton": "注册",
       "registerUsersText": "输入邮箱地址（每行一个）：",
       "ownOrgsOnly": "你只能授予或撤销自己所管理组织的管理员权限。",
-      "otherAdminOrgs": "同时也是以下组织的管理员（由那些组织的管理员或超级管理员管理）：{names}"
+      "otherAdminOrgs": "同时也是以下组织的管理员（由那些组织的管理员或超级管理员管理）：{names}",
+      "roleIn": "在 {org} 的角色",
+      "roleHelp": "项目经理：管理所在部门和团队的目标、关键结果、指标和成员。项目协调员：录入进度，编辑指派给自己或未指派的关键结果和指标。未设置：只能查看。"
     },
     "showObjectives": "查看目标",
     "showPeriods": "查看周期",
@@ -553,60 +555,17 @@
     "myProducts": "我的归属",
     "products": "团队",
     "position": {
-      "groups": {
-        "developers": "开发",
-        "designers": "设计",
-        "teamLead": "团队负责人",
-        "productLead": "产品负责人",
-        "techLead": "技术负责人",
-        "designLead": "设计负责人",
-        "administration": "行政",
-        "members": "团队成员",
-        "productOwner": "产品负责人（PO）",
-        "director": "总监",
-        "others": "其他成员",
-        "departmentDirector": "部门总监",
-        "projectManager": "项目经理",
-        "projectCoordinator": "项目协调员",
-        "specialist": "专员"
-      },
       "title": "角色",
-      "member": "成员",
-      "frontendDeveloper": "前端开发",
-      "backendDeveloper": "后端开发",
-      "fullStackDeveloper": "全栈开发",
-      "techLead": "技术负责人",
-      "interactionDesigner": "交互设计师",
-      "serviceDesigner": "服务设计师",
-      "contentDesigner": "内容设计师",
-      "graphicDesigner": "平面设计师",
-      "designLead": "设计负责人",
-      "informationArchitect": "信息架构师",
-      "dataScientist": "数据科学家",
-      "teamLead": "团队负责人",
-      "productLead": "产品负责人",
-      "productOwner": "产品负责人（PO）",
-      "businessAnalyst": "业务分析师",
-      "businessDeveloper": "业务拓展",
-      "departmentDirector": "部门总监",
-      "director": "总监",
-      "organizationDeveloper": "组织发展",
-      "principalEngineer": "首席工程师",
-      "legalAdvisor": "法务顾问",
-      "itCustodian": "IT 管理员",
-      "hr": "人力资源与人事管理",
-      "hardwareDeveloper": "硬件开发",
-      "humanResourcesManager": "人力资源经理",
-      "dataEngineer": "数据工程师",
-      "mobileDeveloper": "移动端开发",
-      "securityExpert": "安全专家",
-      "administration": "行政",
-      "contentProducer": "内容制作",
-      "other": "其他",
-      "storyteller": "叙事设计",
+      "admin": "管理员",
       "projectManager": "项目经理",
       "projectCoordinator": "项目协调员",
-      "specialist": "专员"
+      "none": "暂无角色（只能查看）",
+      "groups": {
+        "admin": "管理员",
+        "projectManager": "项目经理",
+        "projectCoordinator": "项目协调员",
+        "others": "其他成员（未设置角色）"
+      }
     }
   },
   "dashboard": {

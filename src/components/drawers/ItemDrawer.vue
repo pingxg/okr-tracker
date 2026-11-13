@@ -31,8 +31,9 @@ const { organizations } = storeToRefs(useTrackerStore());
 const { departments } = storeToRefs(useActiveOrganizationStore());
 const { isSuperAdmin, isAdminOfCurrentItemOrganization } = storeToRefs(useAuthStore());
 
-// Members edit name, texts and details; who is a member, where the item sits
-// and archiving are for admins (the server enforces the same).
+// Project managers (who see this drawer) edit name, texts, details and the
+// member list; where the item sits and archiving are for admins (the server
+// enforces the same).
 const canManageItem = computed(
   () => isSuperAdmin.value || isAdminOfCurrentItemOrganization.value
 );
@@ -75,10 +76,10 @@ async function save(values) {
       missionStatement,
       targetAudience: targetAudience || '',
       details: cleanDetails(details.value),
+      team: team.map((user) => doc(db, 'users', user.id)),
     };
 
     if (canManageItem.value) {
-      data.team = team.map((user) => doc(db, 'users', user.id));
       if (isDepartment.value) {
         data.organization = doc(db, 'organizations', parent.id);
       } else if (isProduct.value) {
@@ -222,9 +223,9 @@ async function restore() {
               input-type="custom-select"
               select-mode="tags"
               name="team"
-              :disabled="item.archived || !canManageItem"
+              :disabled="item.archived"
               :label="$t('general.teamMembers')"
-              :helptext="canManageItem ? null : $t('admin.item.teamAdminsOnly')"
+              :helptext="$t('admin.item.teamRolesHelp')"
               value-prop="id"
               :tag-label="(o) => o.displayName || o.id"
               :option-label="(o) => (o.displayName ? `${o.displayName} (${o.id})` : o.id)"

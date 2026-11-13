@@ -22,6 +22,7 @@ import SortableList from '@/components/SortableList.vue';
 import KeyResultLinkCard from '@/components/KeyResultLinkCard.vue';
 import FadeTransition from '@/components/generic/transitions/FadeTransition.vue';
 import { onlyMine } from '@/composables/onlyMine';
+import { ROLE_MANAGER, roleIn } from '@/config/jobPositions';
 import { assigneeIds } from '@/util/assignees';
 
 const { user, hasEditRights } = storeToRefs(useAuthStore());
@@ -108,6 +109,12 @@ const isMemberOfChild = computed(() => {
 
   const { id: parentId } = objective.value.parent;
   const { id: organizationId, children: departments } = organizationTree.value;
+
+  // Adding key results from a child department/team takes the project
+  // manager role in this organization.
+  if (roleIn(user.value, organizationId) !== ROLE_MANAGER) {
+    return false;
+  }
 
   // Check if objective parent is the currently active organization
   // and the current user is a member of any immediate child departments.

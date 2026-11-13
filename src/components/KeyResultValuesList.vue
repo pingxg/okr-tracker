@@ -34,8 +34,11 @@ function addedBy(record) {
       <thead>
         <tr>
           <th>{{ $t('widget.history.value') }}</th>
-          <th>{{ $t('general.details') }}</th>
+          <th>{{ $t('widget.history.time') }}</th>
           <th>{{ $t('widget.history.comment') }}</th>
+          <th v-if="canEdit" class="key-result-values-list__actions">
+            <span class="pkt-sr-only">{{ $t('widget.history.actions') }}</span>
+          </th>
         </tr>
       </thead>
       <ListTransition tag="tbody">
@@ -51,12 +54,11 @@ function addedBy(record) {
               {{ addedBy(record) }}
             </div>
           </td>
-          <td>
-            <p v-if="record.comment" :class="{ 'mr-size-40': canEdit }">
-              {{ record.comment }}
-            </p>
+          <td class="key-result-values-list__comment">
+            {{ record.comment || '' }}
+          </td>
+          <td v-if="canEdit" class="key-result-values-list__actions">
             <pkt-button
-              v-if="canEdit"
               v-tooltip.left="$t('tooltip.editProgress')"
               size="small"
               skin="tertiary"
@@ -78,11 +80,13 @@ function addedBy(record) {
 @use '@oslokommune/punkt-css/dist/scss/abstracts/mixins/typography' as *;
 
 .key-result-values-list__table {
+  width: 100%;
   border-spacing: 0 0.5rem;
 
   th {
     padding: 0 1rem;
     text-align: left;
+    white-space: nowrap;
     @include get-text('pkt-txt-12-medium');
   }
 
@@ -104,18 +108,19 @@ function addedBy(record) {
         min-width: 10rem;
       }
     }
-
-    &:nth-child(3) {
-      position: relative;
-      width: 100%;
-      white-space: pre-line;
-
-      pkt-button {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-      }
-    }
   }
+}
+
+.key-result-values-list__comment {
+  width: 100%;
+  white-space: pre-line;
+}
+
+// Its own narrow column, so the button stays in its row.
+.key-result-values-list__actions {
+  width: 1%;
+  padding: 0.5rem !important;
+  white-space: nowrap;
+  vertical-align: middle !important;
 }
 </style>

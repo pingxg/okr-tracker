@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { displayOrder, positionGroup } from '@/config/jobPositions';
+import { displayOrder, organizationIdOf, positionGroup } from '@/config/jobPositions';
 import { cleanDetails } from '@/util/itemDetails';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';
 import { useActiveItemStore } from '@/store/activeItem';
@@ -58,9 +58,11 @@ const children = computed(() => {
 const teamMembers = computed(() => {
   const members = {};
 
-  // Every member lands in a group that is shown (see positionGroup).
+  // Grouped by what they are in this organization: administrators, project
+  // managers, coordinators, and everyone else (see positionGroup).
+  const orgId = organizationIdOf(item.value);
   item.value.team.forEach((employee) => {
-    const group = positionGroup(employee.position);
+    const group = positionGroup(employee, orgId);
     if (!members[group]) {
       members[group] = [];
     }

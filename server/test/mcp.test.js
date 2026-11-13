@@ -77,11 +77,27 @@ before(async () => {
     [
       [
         'users/alice@x.fi',
-        { id: 'alice@x.fi', email: 'alice@x.fi', admin: [], superAdmin: false },
+        {
+          id: 'alice@x.fi',
+          email: 'alice@x.fi',
+          admin: [],
+          superAdmin: false,
+          roles: { org1: 'projectManager' },
+        },
       ],
       [
         'users/bob@x.fi',
-        { id: 'bob@x.fi', email: 'bob@x.fi', admin: [], superAdmin: false },
+        {
+          id: 'bob@x.fi',
+          email: 'bob@x.fi',
+          admin: [],
+          superAdmin: false,
+          roles: { org1: 'projectCoordinator' },
+        },
+      ],
+      [
+        'users/erin@x.fi',
+        { id: 'erin@x.fi', email: 'erin@x.fi', admin: [], superAdmin: false },
       ],
       [
         'users/carol@x.fi',
@@ -109,7 +125,7 @@ before(async () => {
           slug: 'team',
           organization: ref('organizations/org1'),
           department: ref('departments/dep1'),
-          team: [user('alice@x.fi'), user('bob@x.fi')],
+          team: [user('alice@x.fi'), user('bob@x.fi'), user('erin@x.fi')],
           ...meta,
         },
       ],
@@ -117,7 +133,7 @@ before(async () => {
     { runHooks: false }
   );
 
-  for (const name of ['alice', 'bob', 'carol', 'dana']) {
+  for (const name of ['alice', 'bob', 'carol', 'dana', 'erin']) {
     // eslint-disable-next-line no-await-in-loop
     pat[name] = (
       await tokens.createToken({ kind: 'pat', email: `${name}@x.fi`, name: 'test' })
@@ -217,13 +233,31 @@ test(
     assert.equal(ok.error, false, ok.text);
     krId = ok.data.keyResultId;
 
-    // alice is on the team but not assigned
-    const aliceEdit = await call(pat.alice, 'update_key_result', {
+    // erin is on the team without a role: read only
+    const erinEdit = await call(pat.erin, 'update_key_result', {
       key_result_id: krId,
       name: 'x',
     });
-    assert.equal(aliceEdit.error, true);
-    assert.match(aliceEdit.text, /assigned to bob@x\.fi/);
+    assert.equal(erinEdit.error, true);
+    assert.match(erinEdit.text, /no role/);
+    const erinObjective = await call(pat.erin, 'create_objective', {
+      item_ref: 'products/team1',
+      name: 'x',
+      start_date: '2026-01-01',
+      end_date: '2026-02-01',
+    });
+    assert.equal(erinObjective.error, true);
+
+    // alice (project manager) manages it although bob is assigned
+    assert.equal(
+      (
+        await call(pat.alice, 'update_key_result', {
+          key_result_id: krId,
+          name: 'Revenue (draft)',
+        })
+      ).error,
+      false
+    );
     assert.equal(
       (
         await call(pat.alice, 'record_key_result_progress', {
@@ -231,7 +265,7 @@ test(
           value: 5,
         })
       ).error,
-      true
+      false
     );
 
     // bob is assigned
@@ -257,14 +291,14 @@ test(
       key_result_id: krId,
       assignee_emails: ['alice@x.fi'],
     });
-    assert.equal(reassign.error, true, 'assignees cannot reassign');
+    assert.equal(reassign.error, true, 'coordinators cannot reassign');
     const archive = await call(pat.bob, 'set_archived', {
       kind: 'key_result',
       id: krId,
       archived: true,
     });
     assert.equal(archive.error, true);
-    assert.match(archive.text, /assignees cannot archive/);
+    assert.match(archive.text, /project coordinators cannot archive/);
 
     // the org admin manages it
     assert.equal(
@@ -331,7 +365,7 @@ test(
 
     assert.equal(
       (
-        await call(pat.alice, 'record_measurement_value', {
+        await call(pat.erin, 'record_measurement_value', {
           measurement_id: kpiId,
           value: 3,
         })

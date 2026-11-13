@@ -11,7 +11,10 @@ const ref = (path) => ({ __ref: path });
 const users = {
   super: { email: 'super@x.fi', doc: { superAdmin: true, admin: [] } },
   orgAdmin: { email: 'orgadmin@x.fi', doc: { superAdmin: false, admin: ['org1'] } },
-  member: { email: 'member@x.fi', doc: { superAdmin: false, admin: [] } },
+  member: {
+    email: 'member@x.fi',
+    doc: { superAdmin: false, admin: [], roles: { org1: 'projectManager' } },
+  },
   outsider: { email: 'outsider@x.fi', doc: { superAdmin: false, admin: [] } },
   unregistered: { email: 'nobody@x.fi', doc: null },
 };

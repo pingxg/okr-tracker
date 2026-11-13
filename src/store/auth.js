@@ -11,7 +11,8 @@ import defaultPreferences from '@/db/User/defaultPreferences';
 import { useActiveOrganizationStore } from '@/store/activeOrganization';
 import { useActiveItemStore } from '@/store/activeItem';
 import { useTrackerUser } from '@/composables/user';
-import { canEditAssigned, canManageAssigned } from '@/util/assignees';
+import { canEditAssigned, canManageAssigned, userIdOf } from '@/util/assignees';
+import { ROLE_MANAGER, organizationIdOf, roleIn } from '@/config/jobPositions';
 
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter();
@@ -147,10 +148,22 @@ export const useAuthStore = defineStore('auth', () => {
     );
   });
 
+  /** The current user's role in an organization ('projectManager', …) or null. */
+  const roleInOrganization = (orgId) => roleIn(user.value, orgId);
+
+  /** Project manager on the team of `item` (in its organization). */
+  function isManagerOf(item) {
+    if (!user.value || !item?.team) {
+      return false;
+    }
+    const member = item.team.map(userIdOf).includes(user.value.id);
+    return member && roleIn(user.value, organizationIdOf(item)) === ROLE_MANAGER;
+  }
+
   const hasEditRights = computed(() => {
     /**
-     * Returns `true` if the current user has admin rights or is member of
-     * the currently active item.
+     * Returns `true` if the current user may manage the active item's OKRs,
+     * measurements and members: admins, and its project managers.
      */
     const { item } = useActiveItemStore();
 
@@ -162,11 +175,7 @@ export const useAuthStore = defineStore('auth', () => {
       return true;
     }
 
-    if (!item.team) {
-      return false;
-    }
-
-    return item.team.map(({ id }) => id).includes(user.value.id);
+    return isManagerOf(item);
   });
 
   /**
@@ -186,12 +195,16 @@ export const useAuthStore = defineStore('auth', () => {
     return known || (typeof parent === 'object' ? parent : null);
   }
 
-  const assignedCheck = (record) => ({
-    record,
-    parent: recordParent(record),
-    userId: user.value?.id,
-    isAdmin: isSuperAdmin.value || isAdminOfCurrentItemOrganization.value,
-  });
+  const assignedCheck = (record) => {
+    const parent = recordParent(record);
+    return {
+      record,
+      parent,
+      userId: user.value?.id,
+      isAdmin: isSuperAdmin.value || isAdminOfCurrentItemOrganization.value,
+      role: roleIn(user.value, organizationIdOf(parent)),
+    };
+  };
 
   /** May edit the key result / measurement and record progress on it. */
   const canEditRecord = (record) => canEditAssigned(assignedCheck(record));
@@ -214,16 +227,17 @@ export const useAuthStore = defineStore('auth', () => {
       return true;
     }
 
+    // Project manager on the parent's team (same organization).
+    if (roleIn(user.value, organizationIdOf(item)) !== ROLE_MANAGER) {
+      return false;
+    }
+
     if (isProduct && item.department.team) {
-      return item.department.team
-        .map((userDoc) => userDoc.split('/')[1])
-        .includes(user.value.id);
+      return item.department.team.map(userIdOf).includes(user.value.id);
     }
 
     if (isDepartment && item.organization.team) {
-      return item.organization.team
-        .map((userDoc) => userDoc.split('/')[1])
-        .includes(user.value.id);
+      return item.organization.team.map(userIdOf).includes(user.value.id);
     }
 
     return false;
@@ -289,6 +303,8 @@ export const useAuthStore = defineStore('auth', () => {
     hasParentEditRights,
     canEditRecord,
     canManageRecord,
+    isManagerOf,
+    roleInOrganization,
     isMemberOfCurrentItemOrganization,
 
     preferences,

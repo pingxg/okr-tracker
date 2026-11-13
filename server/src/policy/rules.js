@@ -65,15 +65,60 @@ function isAdminOfNode(actor, node, nodeId) {
   return adminOf(actor, nodeId);
 }
 
+// --- roles -------------------------------------------------------------------------
+//
+// Roles are set per organization by its admins (users/{email}.roles =
+// { <orgId>: 'projectManager' | 'projectCoordinator' }). In the departments
+// and teams a person is a member of:
+//   - project manager:     manages OKRs, measurements and the member list;
+//   - project coordinator: records progress and edits key results /
+//                          measurements assigned to them or to nobody;
+//   - no role:             reads only.
+// Admins of the organization and super admins may do everything.
+
+export const ROLE_MANAGER = 'projectManager';
+export const ROLE_COORDINATOR = 'projectCoordinator';
+const ROLES = [ROLE_MANAGER, ROLE_COORDINATOR];
+
+/** Organization id of an organization, department or team document. */
+function orgIdOfNode(node, nodeId) {
+  if (!node) {
+    return null;
+  }
+  return 'organization' in node ? refId(node.organization) : nodeId;
+}
+
+const roleIn = (actor, orgId) => {
+  const roles = actor?.doc?.roles;
+  return orgId && roles && typeof roles === 'object' ? roles[orgId] || null : null;
+};
+
+/** The actor's role in `node` if they are on its team, else null. */
+function memberRole(actor, node, nodeId) {
+  if (!node || !hasRef(node.team, userPath(actor))) {
+    return null;
+  }
+  return roleIn(actor, orgIdOfNode(node, nodeId));
+}
+
 // --- rule helpers that look at other documents --------------------------------
 
-async function isMemberOfParent(actor, data, lookup) {
+async function parentRole(actor, data, lookup) {
   const parentPath = refPath(data?.parent);
   if (!parentPath) {
-    return false;
+    return null;
   }
-  const parent = await lookup(parentPath);
-  return hasRef(parent?.team, userPath(actor));
+  return memberRole(actor, await lookup(parentPath), idOf(parentPath));
+}
+
+/** Project manager on the team of the document's parent item. */
+async function isManagerOfParent(actor, data, lookup) {
+  return (await parentRole(actor, data, lookup)) === ROLE_MANAGER;
+}
+
+/** Project coordinator on the team of the document's parent item. */
+async function isCoordinatorOfParent(actor, data, lookup) {
+  return (await parentRole(actor, data, lookup)) === ROLE_COORDINATOR;
 }
 
 async function isAdminOfParent(actor, data, getAfter) {
@@ -85,13 +130,13 @@ async function isAdminOfParent(actor, data, getAfter) {
   return isAdminOfNode(actor, parent, idOf(parentPath));
 }
 
-async function isMemberOfItem(actor, data, lookup) {
+/** Project manager on the team of the document's `item`. */
+async function isManagerOfItem(actor, data, lookup) {
   const itemPath = refPath(data?.item);
   if (!itemPath) {
     return false;
   }
-  const item = await lookup(itemPath);
-  return hasRef(item?.team, userPath(actor));
+  return memberRole(actor, await lookup(itemPath), idOf(itemPath)) === ROLE_MANAGER;
 }
 
 async function isAdminOfItem(actor, data, lookup) {
@@ -168,28 +213,57 @@ function adminChangeAllowed(actor, beforeList, afterList) {
 }
 
 /**
- * Item fields only admins change: who is a member, where the item sits and
- * whether it is archived. Members may edit the rest (name, texts, details).
+ * Roles may only change for organizations the actor is an admin of; a role
+ * is one of ROLES (or removed).
  */
-const ITEM_MANAGED_FIELDS = ['team', 'organization', 'department', 'archived'];
+function rolesChangeAllowed(actor, beforeRoles, afterRoles) {
+  if (afterRoles !== undefined && afterRoles !== null) {
+    if (typeof afterRoles !== 'object' || Array.isArray(afterRoles)) {
+      return false;
+    }
+    if (!Object.values(afterRoles).every((r) => r === null || ROLES.includes(r))) {
+      return false;
+    }
+  }
+  const before = beforeRoles && typeof beforeRoles === 'object' ? beforeRoles : {};
+  const after = afterRoles && typeof afterRoles === 'object' ? afterRoles : {};
+  const orgs = new Set([...Object.keys(before), ...Object.keys(after)]);
+  const changed = [...orgs].filter(
+    (org) => (before[org] || null) !== (after[org] || null)
+  );
+  const mine = actor.doc?.admin || [];
+  return changed.every((org) => mine.includes(org));
+}
 
-const changesOnlyContent = (before, after) =>
-  !affectedKeys(before, after).some((key) => ITEM_MANAGED_FIELDS.includes(key));
+/**
+ * Item fields only admins change: where the item sits and whether it is
+ * archived. Project managers may also change its member list.
+ */
+const ITEM_ADMIN_FIELDS = ['organization', 'department', 'archived'];
 
-// --- assignees of key results and measurements ---------------------------------
+const keepsAdminFields = (before, after) =>
+  !affectedKeys(before, after).some((key) => ITEM_ADMIN_FIELDS.includes(key));
+
+// --- key results and measurements --------------------------------------------------
 //
 // A key result or measurement (KPI) can be assigned to one or more members of
 // its parent's team (`assignees`, user references).
-//   - Not assigned: every member of the parent team may edit it (as before).
-//   - Assigned: only the assignees edit it and record progress; other members
-//     can only read it. Assignees cannot reassign, move or archive it.
-//   - Super admins and admins of the organization may do everything.
+//   - Admins and project managers of the parent item may do everything:
+//     create, edit, assign, move (where they manage too), archive, reorder.
+//   - Project coordinators edit the content and record progress of those
+//     assigned to them or to nobody; they cannot create, assign, move,
+//     reorder or archive.
+//   - Everyone else reads only.
 
-/** Fields only admins (or members, while nobody is assigned) may change. */
-const MANAGED_FIELDS = ['assignees', 'parent', 'objective', 'archived'];
+/** Fields coordinators may not change. */
+const MANAGED_FIELDS = ['assignees', 'parent', 'objective', 'archived', 'order'];
 
-/** A change of only these fields is a reorder of the key result list. */
-const ORDER_FIELDS = ['order', 'edited', 'editedBy'];
+async function managesParent(actor, data, lookup) {
+  return (
+    (await isAdminOfParent(actor, data, lookup)) ||
+    (await isManagerOfParent(actor, data, lookup))
+  );
+}
 
 /** User paths of the assignees, or null when the list is malformed. */
 function assigneePaths(data) {
@@ -218,12 +292,12 @@ async function assigneesInTeam(data, lookup) {
   return paths.every((p) => hasRef(parent?.team, p));
 }
 
-/** The actor may edit the record and its progress (see above). */
+/** The actor may edit the record and record its progress (see above). */
 async function canEditAssigned(actor, data, lookup) {
-  if (await isAdminOfParent(actor, data, lookup)) {
+  if (await managesParent(actor, data, lookup)) {
     return true;
   }
-  if (!(await isMemberOfParent(actor, data, lookup))) {
+  if (!(await isCoordinatorOfParent(actor, data, lookup))) {
     return false;
   }
   const paths = assigneePaths(data) || [];
@@ -233,35 +307,21 @@ async function canEditAssigned(actor, data, lookup) {
 async function canWriteAssigned(actor, op, before, after, getBefore, getAfter) {
   if (op === 'create') {
     return (
-      ((await isMemberOfParent(actor, after, getAfter)) ||
-        (await isAdminOfParent(actor, after, getAfter))) &&
+      (await managesParent(actor, after, getAfter)) &&
       (await assigneesInTeam(after, getAfter))
     );
   }
   // update
-  if (
-    (await isAdminOfParent(actor, before, getBefore)) &&
-    (await isAdminOfParent(actor, after, getAfter))
-  ) {
+  const changed = affectedKeys(before, after);
+  if (await managesParent(actor, before, getBefore)) {
+    // Moving it needs management rights at the new place as well.
+    if (changed.includes('parent') && !(await managesParent(actor, after, getAfter))) {
+      return false;
+    }
     return assigneesInTeam(after, getAfter);
   }
-  if (!(await isMemberOfParent(actor, before, getBefore))) {
-    return false;
-  }
-  const changed = affectedKeys(before, after);
-  // Reordering the list of key results is arranging, not editing: any team
-  // member may still do it.
-  if (changed.every((key) => ORDER_FIELDS.includes(key))) {
-    return true;
-  }
-  const assigned = assigneePaths(before) || [];
-  if (!assigned.length) {
-    return (
-      (await isMemberOfParent(actor, after, getAfter)) &&
-      (await assigneesInTeam(after, getAfter))
-    );
-  }
-  if (!assigned.includes(userPath(actor))) {
+  // Coordinators: content of what is assigned to them or to nobody.
+  if (!(await canEditAssigned(actor, before, getBefore))) {
     return false;
   }
   return !changed.some((key) => MANAGED_FIELDS.includes(key));
@@ -354,11 +414,13 @@ export async function canWrite(actor, change, ctx) {
       //   admins for that organization only (the original let anyone edit
       //   their own `admin` list, and any admin edit anyone's);
       // - only super admins delete users.
+      // Roles (per organization) follow the same rule as admin rights.
       if (op === 'create') {
         return (
           isAdmin(actor) &&
           !after?.superAdmin &&
-          adminChangeAllowed(actor, [], after?.admin)
+          adminChangeAllowed(actor, [], after?.admin) &&
+          rolesChangeAllowed(actor, {}, after?.roles)
         );
       }
       if (op === 'update') {
@@ -369,6 +431,12 @@ export async function canWrite(actor, change, ctx) {
         if (
           changed.includes('admin') &&
           !(isAdmin(actor) && adminChangeAllowed(actor, before?.admin, after?.admin))
+        ) {
+          return false;
+        }
+        if (
+          changed.includes('roles') &&
+          !(isAdmin(actor) && rolesChangeAllowed(actor, before?.roles, after?.roles))
         ) {
           return false;
         }
@@ -387,8 +455,11 @@ export async function canWrite(actor, change, ctx) {
       if (superAdmin || isAdminOfNode(actor, after, idOf(path))) {
         return true;
       }
-      // Members edit the content, not the member list or archive state.
-      return hasRef(before?.team, userPath(actor)) && changesOnlyContent(before, after);
+      // Project managers edit the content and member list, not the archive state.
+      return (
+        memberRole(actor, before, idOf(path)) === ROLE_MANAGER &&
+        keepsAdminFields(before, after)
+      );
 
     case 'departments':
     case 'products':
@@ -412,8 +483,12 @@ export async function canWrite(actor, change, ctx) {
       ) {
         return true;
       }
-      // Members edit the content, not the member list, place or archive state.
-      return hasRef(before?.team, userPath(actor)) && changesOnlyContent(before, after);
+      // Project managers edit the content and member list, not the place or
+      // archive state.
+      return (
+        memberRole(actor, before, idOf(path)) === ROLE_MANAGER &&
+        keepsAdminFields(before, after)
+      );
 
     case 'keyResults':
     case 'kpis':
@@ -438,13 +513,13 @@ export async function canWrite(actor, change, ctx) {
       if (op === 'create') {
         return (
           superAdmin ||
-          (await isMemberOfParent(actor, after, getAfter)) ||
+          (await isManagerOfParent(actor, after, getAfter)) ||
           (await isAdminOfParent(actor, after, getAfter))
         );
       }
       return (
         superAdmin ||
-        (await isMemberOfParent(actor, before, getBefore)) ||
+        (await isManagerOfParent(actor, before, getBefore)) ||
         (await isAdminOfParent(actor, after, getAfter))
       );
 
@@ -471,7 +546,7 @@ export async function canWrite(actor, change, ctx) {
       // Rules refer to the parent document as it is after the batch.
       const parent = await getAfter(parentDocPath);
       return (
-        (await isMemberOfParent(actor, parent, getAfter)) ||
+        (await isManagerOfParent(actor, parent, getAfter)) ||
         (await isAdminOfParent(actor, parent, getAfter))
       );
     }
@@ -489,7 +564,7 @@ export async function canWrite(actor, change, ctx) {
         return false;
       }
       return (
-        (await isMemberOfParent(actor, after, getAfter)) ||
+        (await isManagerOfParent(actor, after, getAfter)) ||
         (await isAdminOfParent(actor, after, getAfter))
       );
 
@@ -502,7 +577,7 @@ export async function canWrite(actor, change, ctx) {
       }
       if (op === 'create') {
         return (
-          ((await isMemberOfItem(actor, after, getAfter)) &&
+          ((await isManagerOfItem(actor, after, getAfter)) &&
             (await objectiveParentIsItemOrItemParent(after, getAfter))) ||
           ((await isAdminOfItem(actor, after, getAfter)) &&
             (await isAdminOfObjectiveParent(actor, after, getAfter)))
@@ -510,7 +585,7 @@ export async function canWrite(actor, change, ctx) {
       }
       if (op === 'delete') {
         return (
-          (await isMemberOfItem(actor, before, getBefore)) ||
+          (await isManagerOfItem(actor, before, getBefore)) ||
           ((await isAdminOfItem(actor, before, getBefore)) &&
             (await isAdminOfObjectiveParent(actor, before, getBefore)))
         );

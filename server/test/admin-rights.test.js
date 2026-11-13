@@ -14,15 +14,25 @@ const users = {
   admin1: { email: 'admin1@x.fi', doc: { superAdmin: false, admin: ['org1'] } },
   member: { email: 'member@x.fi', doc: { superAdmin: false, admin: [] } },
   other: { email: 'other@x.fi', doc: { superAdmin: false, admin: [] } },
+  pm: {
+    email: 'pm@x.fi',
+    doc: { superAdmin: false, admin: [], roles: { org1: 'projectManager' } },
+  },
+  pc: {
+    email: 'pc@x.fi',
+    doc: { superAdmin: false, admin: [], roles: { org1: 'projectCoordinator' } },
+  },
 };
 
+const team1 = [user('member@x.fi'), user('pm@x.fi'), user('pc@x.fi')];
+
 const world = {
-  'organizations/org1': { name: 'Org 1', team: [user('member@x.fi')] },
+  'organizations/org1': { name: 'Org 1', team: team1 },
   'organizations/org2': { name: 'Org 2', team: [] },
   'departments/dep1': {
     name: 'Dep 1',
     organization: ref('organizations/org1'),
-    team: [user('member@x.fi')],
+    team: team1,
   },
   'departments/dep2': {
     name: 'Dep 2',
@@ -149,27 +159,63 @@ test('only org admins create departments and teams', async () => {
   );
 });
 
-test('members edit content, not the member list, place or archive state', async () => {
-  assert.equal(await update(users.member, 'departments/dep1', { name: 'Renamed' }), true);
+test('project managers edit content and members, not the place or archive state', async () => {
+  assert.equal(await update(users.pm, 'departments/dep1', { name: 'Renamed' }), true);
   assert.equal(
-    await update(users.member, 'departments/dep1', {
-      team: [user('member@x.fi'), user('other@x.fi')],
-    }),
-    false
+    await update(users.pm, 'departments/dep1', { team: [...team1, user('other@x.fi')] }),
+    true
   );
-  assert.equal(await update(users.member, 'departments/dep1', { archived: true }), false);
+  assert.equal(await update(users.pm, 'departments/dep1', { archived: true }), false);
   assert.equal(
-    await update(users.member, 'departments/dep1', {
+    await update(users.pm, 'departments/dep1', {
       organization: ref('organizations/org2'),
     }),
     false
   );
+  assert.equal(await update(users.pm, 'organizations/org1', { team: [] }), true);
+  assert.equal(await update(users.pm, 'organizations/org1', { archived: true }), false);
+});
+
+test('coordinators and members without a role do not edit items', async () => {
+  for (const actor of [users.pc, users.member]) {
+    assert.equal(await update(actor, 'departments/dep1', { name: 'Renamed' }), false);
+    assert.equal(await update(actor, 'departments/dep1', { team: [] }), false);
+    assert.equal(await update(actor, 'organizations/org1', { name: 'X' }), false);
+  }
+});
+
+test('roles are set by admins, for their own organizations only', async () => {
   assert.equal(
-    await update(users.member, 'organizations/org1', { team: [] }),
+    await update(users.member, 'users/member@x.fi', {
+      roles: { org1: 'projectManager' },
+    }),
     false,
-    'same for organizations'
+    'nobody gives themselves a role'
   );
-  assert.equal(await update(users.member, 'organizations/org1', { name: 'X' }), true);
+  assert.equal(
+    await update(users.admin1, 'users/member@x.fi', {
+      roles: { org1: 'projectManager' },
+    }),
+    true
+  );
+  assert.equal(
+    await update(users.admin1, 'users/member@x.fi', {
+      roles: { org2: 'projectManager' },
+    }),
+    false,
+    'not for another organization'
+  );
+  assert.equal(
+    await update(users.admin1, 'users/member@x.fi', { roles: { org1: 'boss' } }),
+    false,
+    'unknown role'
+  );
+  assert.equal(
+    await update(users.super, 'users/member@x.fi', {
+      roles: { org2: 'projectCoordinator' },
+    }),
+    true
+  );
 });
 
 test('org admins manage items of their organization, not of others', async () => {

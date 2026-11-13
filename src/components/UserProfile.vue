@@ -6,6 +6,8 @@ import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/store/auth';
 import { useTrackerUser } from '@/composables/user';
 import User from '@/db/User';
+import { useTrackerStore } from '@/store/tracker';
+import { positionGroup } from '@/config/jobPositions';
 import UserProfileForm from '@/components/forms/UserProfileForm.vue';
 import MembershipList from '@/components/MembershipList.vue';
 
@@ -28,6 +30,22 @@ const toast = useToast();
 
 const { user: currentUser, isSuperAdmin } = storeToRefs(useAuthStore());
 const { user, organizations, departments, products } = useTrackerUser(props.userId);
+const { organizations: allOrganizations } = storeToRefs(useTrackerStore());
+
+// "Organization: role" for every organization the person administers or has
+// a role in.
+const roleLines = computed(() => {
+  if (!user.value) {
+    return [];
+  }
+  if (user.value.superAdmin) {
+    return [{ org: null, label: i18n.t('general.superAdmin') }];
+  }
+  return allOrganizations.value
+    .map((org) => ({ org: org.name, group: positionGroup(user.value, org.id) }))
+    .filter((line) => line.group !== 'others')
+    .map((line) => ({ org: line.org, label: i18n.t(`user.position.${line.group}`) }));
+});
 const isCurrentUser = computed(
   () => user.value && currentUser.value && user.value.id === currentUser.value.id
 );
@@ -36,12 +54,11 @@ const isLoading = ref(false);
 async function save(data) {
   isLoading.value = true;
   try {
-    const { displayName, position, lang } = data;
+    const { displayName, lang } = data;
     const preferences = user.value.preferences;
     preferences.lang = lang;
     await User.update(user.value, {
       displayName,
-      position,
       preferences,
     });
     toast.success(i18n.t('toaster.update.profile'));
@@ -73,15 +90,18 @@ async function save(data) {
             <span>{{ $t('fields.name') }}</span>
             <span>{{ user.displayName }}</span>
           </div>
+        </div>
+
+        <!-- Roles are set by admins per organization and carry rights. -->
+        <div class="user-details mt-size-16">
           <div class="user-details__property">
             <span>{{ $t('user.position.title') }}</span>
-            <span>
-              {{
-                user.position
-                  ? $t(`user.position.${user.position}`)
-                  : $t('user.position.member')
-              }}
+            <span v-if="roleLines.length">
+              <template v-for="line in roleLines" :key="line.org">
+                {{ line.org ? `${line.org}: ${line.label}` : line.label }}<br />
+              </template>
             </span>
+            <span v-else>{{ $t('user.position.none') }}</span>
           </div>
         </div>
       </template>

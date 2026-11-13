@@ -33,7 +33,7 @@ const props = defineProps({
 const emit = defineEmits(['create', 'update', 'archive', 'restore', 'add-key-result']);
 
 const authStore = useAuthStore();
-const { user, isAdminOfCurrentItemOrganization, isSuperAdmin } = storeToRefs(authStore);
+const { isAdminOfCurrentItemOrganization, isSuperAdmin } = storeToRefs(authStore);
 const { organizationTree, organization, departments, products } = storeToRefs(
   useActiveOrganizationStore()
 );
@@ -137,11 +137,13 @@ onMounted(async () => {
   }
 });
 
+// Owners to choose from: items the user manages (project manager there), or
+// any item for admins.
 function canSelectOwner(item) {
   return (
-    item.team.map(({ id }) => id).includes(user.value.id) ||
     isAdminOfCurrentItemOrganization.value ||
-    isSuperAdmin.value
+    isSuperAdmin.value ||
+    authStore.isManagerOf(item)
   );
 }
 

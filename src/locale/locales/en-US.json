@@ -398,7 +398,7 @@
       "delete": "Delete {name}",
       "slugChangeInfo": "When changing the name of this item, the address to it might also change. In that case you will be automatically redirected after saving the form.",
       "redirectInfo": "You will be redirected in {count} seconds.",
-      "teamAdminsOnly": "Only organization admins can change the members and where it belongs."
+      "teamRolesHelp": "What members may do depends on the role an admin gives them: project managers manage, coordinators record progress, members without a role only read."
     },
     "objective": {
       "new": "New objective",
@@ -461,7 +461,9 @@
       "registerUsersButton": "Register",
       "registerUsersText": "Insert email addresses (one address per line):",
       "ownOrgsOnly": "You can grant or remove admin rights only for organizations you administer.",
-      "otherAdminOrgs": "Also admin of: {names} (managed by those organizations’ admins or super admins)."
+      "otherAdminOrgs": "Also admin of: {names} (managed by those organizations’ admins or super admins).",
+      "roleIn": "Role in {org}",
+      "roleHelp": "Project manager: manages objectives, key results, measurements and members of their departments and teams. Project coordinator: records progress and edits key results and measurements assigned to them or to nobody. None: read only."
     },
     "showObjectives": "View objectives",
     "showPeriods": "View periods",
@@ -553,60 +555,17 @@
     "myProducts": "My affiliations",
     "products": "Teams",
     "position": {
-      "groups": {
-        "developers": "Developers",
-        "designers": "Designers",
-        "teamLead": "Team lead",
-        "productLead": "Product lead",
-        "techLead": "Tech lead",
-        "designLead": "Design lead",
-        "administration": "Administration",
-        "members": "Team members",
-        "productOwner": "Product owner",
-        "director": "Director",
-        "others": "Other members",
-        "departmentDirector": "Department director",
-        "projectManager": "Project managers",
-        "projectCoordinator": "Project coordinators",
-        "specialist": "Specialists"
-      },
       "title": "Role",
-      "member": "Member",
-      "frontendDeveloper": "Front-end developer",
-      "backendDeveloper": "Back-end developer",
-      "fullStackDeveloper": "Full stack developer",
-      "techLead": "Tech lead",
-      "interactionDesigner": "Interaction designer",
-      "serviceDesigner": "Service designer",
-      "contentDesigner": "Content designer",
-      "graphicDesigner": "Graphic designer",
-      "designLead": "Design lead",
-      "informationArchitect": "Information Architect",
-      "dataScientist": "Data scientist",
-      "teamLead": "Team lead",
-      "productLead": "Product lead",
-      "productOwner": "Product owner",
-      "businessAnalyst": "Business Analyst",
-      "businessDeveloper": "Business Developer",
-      "departmentDirector": "Department director",
-      "director": "Director",
-      "organizationDeveloper": "Organization Developer",
-      "principalEngineer": "Principal Engineer",
-      "legalAdvisor": "Legal advisor",
-      "itCustodian": "IT-Custodian",
-      "hr": "HR and personnel management",
-      "hardwareDeveloper": "Hardware developer",
-      "humanResourcesManager": "Human resources manager",
-      "dataEngineer": "Data engineer",
-      "mobileDeveloper": "Mobile developer",
-      "securityExpert": "Security expert",
-      "administration": "Administration",
-      "contentProducer": "Content producer",
-      "other": "Other",
-      "storyteller": "Storyteller",
+      "admin": "Administrator",
       "projectManager": "Project manager",
       "projectCoordinator": "Project coordinator",
-      "specialist": "Specialist"
+      "none": "No role yet (read only)",
+      "groups": {
+        "admin": "Administrators",
+        "projectManager": "Project managers",
+        "projectCoordinator": "Project coordinators",
+        "others": "Other members (no role)"
+      }
     }
   },
   "dashboard": {
