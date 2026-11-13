@@ -558,3 +558,80 @@ test(
     await assert.rejects(connect(next.access_token));
   }
 );
+
+test(
+  'discovery probes: GET asks for sign-in, unknown documents are a real 404',
+  { skip },
+  async () => {
+    const get = await fetch(`${BASE}/mcp`, { headers: { Accept: 'text/event-stream' } });
+    assert.equal(get.status, 401);
+    assert.match(get.headers.get('www-authenticate'), /resource_metadata=/);
+    const oidc = await fetch(`${BASE}/.well-known/openid-configuration`);
+    assert.equal(oidc.status, 404);
+    assert.match(oidc.headers.get('content-type'), /json/);
+    const insertion = await fetch(`${BASE}/.well-known/oauth-authorization-server/mcp`);
+    assert.equal((await insertion.json()).issuer, BASE);
+  }
+);
+
+test('OAuth: confidential clients get a secret and must send it', { skip }, async () => {
+  const redirectUri = 'https://assistant.example/cb2';
+  const reg = await (
+    await fetch(`${BASE}/oauth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_name: 'Confidential',
+        redirect_uris: [redirectUri],
+        token_endpoint_auth_method: 'client_secret_basic',
+      }),
+    })
+  ).json();
+  assert.equal(reg.token_endpoint_auth_method, 'client_secret_basic');
+  assert.match(reg.client_secret, /^okr_cs_/);
+
+  const verifier = crypto.randomBytes(32).toString('base64url');
+  const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
+  const cookie = `okr_session=${session.createSession({
+    email: 'alice@x.fi',
+    provider: 'oidc',
+  })}`;
+  const consent = await fetch(
+    `${BASE}/oauth/authorize?response_type=code&client_id=${
+      reg.client_id
+    }&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&code_challenge=${challenge}&code_challenge_method=S256`,
+    { headers: { Cookie: cookie } }
+  );
+  const decision = (await consent.text())
+    .match(/name="decision" value="([^"]+)"/)[1]
+    .replace(/&quot;/g, '"');
+  const allowed = await fetch(`${BASE}/oauth/authorize`, {
+    method: 'POST',
+    redirect: 'manual',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: cookie },
+    body: new URLSearchParams({ decision, allow: 'yes' }),
+  });
+  const code = new URL(allowed.headers.get('location')).searchParams.get('code');
+  const exchange = (secret) =>
+    fetch(`${BASE}/oauth/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${Buffer.from(`${reg.client_id}:${secret}`).toString(
+          'base64'
+        )}`,
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+        code_verifier: verifier,
+      }),
+    });
+  assert.equal((await exchange('wrong')).status, 401, 'wrong client secret');
+  const ok = await exchange(reg.client_secret);
+  assert.equal(ok.status, 200);
+  assert.match((await ok.json()).access_token, /^okr_at_/);
+});

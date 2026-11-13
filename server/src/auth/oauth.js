@@ -18,9 +18,11 @@ import config from '../config.js';
 import pool from '../db/pool.js';
 import { decodeSigned, encodeSigned } from './session.js';
 import { actorFromRequest } from './users.js';
-import { TTL_SECONDS, consumeToken, createToken } from './tokens.js';
+import { TTL_SECONDS, consumeToken, createToken, hashSecret } from './tokens.js';
 
 export const SCOPE = 'okr';
+// Public clients (PKCE only) or confidential ones with a client secret.
+const AUTH_METHODS = ['none', 'client_secret_post', 'client_secret_basic'];
 export const mcpResourceUrl = () => `${config.publicUrl}/mcp`;
 export const resourceMetadataUrl = () =>
   `${config.publicUrl}/.well-known/oauth-protected-resource`;
@@ -137,6 +139,7 @@ export default async function oauthRoutes(fastify) {
     '/.well-known/oauth-protected-resource',
     '/.well-known/oauth-protected-resource/mcp',
     '/.well-known/oauth-authorization-server',
+    '/.well-known/oauth-authorization-server/mcp',
     '/oauth/register',
     '/oauth/token',
   ].forEach((path) =>
@@ -153,7 +156,7 @@ export default async function oauthRoutes(fastify) {
   fastify.get('/.well-known/oauth-protected-resource', protectedResource);
   fastify.get('/.well-known/oauth-protected-resource/mcp', protectedResource);
 
-  fastify.get('/.well-known/oauth-authorization-server', async () => ({
+  const authorizationServer = async () => ({
     issuer: config.publicUrl,
     authorization_endpoint: `${config.publicUrl}/oauth/authorize`,
     token_endpoint: `${config.publicUrl}/oauth/token`,
@@ -162,8 +165,11 @@ export default async function oauthRoutes(fastify) {
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
     code_challenge_methods_supported: ['S256'],
-    token_endpoint_auth_methods_supported: ['none'],
-  }));
+    token_endpoint_auth_methods_supported: AUTH_METHODS,
+  });
+  fastify.get('/.well-known/oauth-authorization-server', authorizationServer);
+  // Path-insertion form some clients use for a resource at /mcp.
+  fastify.get('/.well-known/oauth-authorization-server/mcp', authorizationServer);
 
   fastify.post('/oauth/register', async (request, reply) => {
     const body = request.body || {};
@@ -182,16 +188,31 @@ export default async function oauthRoutes(fastify) {
     }
     const clientId = `okr_client_${crypto.randomBytes(16).toString('base64url')}`;
     const clientName = String(body.client_name || '').slice(0, 100) || null;
+    // Confidential clients get a secret (stored hashed); PKCE applies to all.
+    const method = AUTH_METHODS.includes(body.token_endpoint_auth_method)
+      ? body.token_endpoint_auth_method
+      : 'none';
+    const secret =
+      method === 'none' ? null : `okr_cs_${crypto.randomBytes(32).toString('base64url')}`;
     await pool.query(
-      'INSERT INTO oauth_clients (client_id, client_name, redirect_uris) VALUES ($1, $2, $3)',
-      [clientId, clientName, JSON.stringify(redirectUris)]
+      `INSERT INTO oauth_clients
+         (client_id, client_name, redirect_uris, token_endpoint_auth_method, client_secret_hash)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        clientId,
+        clientName,
+        JSON.stringify(redirectUris),
+        method,
+        secret && hashSecret(secret),
+      ]
     );
     return reply.code(201).send({
       client_id: clientId,
       client_id_issued_at: Math.floor(Date.now() / 1000),
+      ...(secret ? { client_secret: secret, client_secret_expires_at: 0 } : {}),
       client_name: clientName,
       redirect_uris: redirectUris,
-      token_endpoint_auth_method: 'none',
+      token_endpoint_auth_method: method,
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
       scope: SCOPE,
@@ -327,9 +348,26 @@ export default async function oauthRoutes(fastify) {
 
   fastify.post('/oauth/token', async (request, reply) => {
     const body = request.body || {};
-    const client = await getClient(body.client_id);
+    // Client credentials: in the body (client_secret_post, or just client_id
+    // for public clients) or as HTTP Basic (client_secret_basic).
+    let clientId = body.client_id;
+    let clientSecret = body.client_secret;
+    const basic = (request.headers.authorization || '').match(/^Basic\s+(\S+)$/i);
+    if (basic) {
+      const [id, ...rest] = Buffer.from(basic[1], 'base64').toString('utf8').split(':');
+      clientId = decodeURIComponent(id);
+      clientSecret = decodeURIComponent(rest.join(':'));
+    }
+    const client = await getClient(clientId);
     if (!client) {
       return oauthError(reply, 401, 'invalid_client', 'Unknown client');
+    }
+    if (client.client_secret_hash) {
+      const given = Buffer.from(hashSecret(clientSecret || ''));
+      const expected = Buffer.from(client.client_secret_hash);
+      if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) {
+        return oauthError(reply, 401, 'invalid_client', 'Invalid client secret');
+      }
     }
 
     let email;

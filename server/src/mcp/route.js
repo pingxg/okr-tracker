@@ -22,21 +22,26 @@ const CORS = {
 export default async function mcpRoutes(fastify) {
   fastify.options('/mcp', async (request, reply) => reply.headers(CORS).code(204).send());
 
+  // Any request without a valid token (whatever the method) gets the 401
+  // with the OAuth discovery link, so clients start the sign-in.
+  const signInRequired = (reply) =>
+    reply
+      .headers(CORS)
+      .header(
+        'WWW-Authenticate',
+        `Bearer resource_metadata="${resourceMetadataUrl()}", scope="${SCOPE}"`
+      )
+      .code(401)
+      .send({
+        jsonrpc: '2.0',
+        error: { code: -32001, message: 'Sign in required (missing or invalid token)' },
+        id: null,
+      });
+
   fastify.post('/mcp', async (request, reply) => {
     const actor = await actorFromBearer(request);
     if (!actor) {
-      return reply
-        .headers(CORS)
-        .header(
-          'WWW-Authenticate',
-          `Bearer resource_metadata="${resourceMetadataUrl()}", scope="${SCOPE}"`
-        )
-        .code(401)
-        .send({
-          jsonrpc: '2.0',
-          error: { code: -32001, message: 'Sign in required (missing or invalid token)' },
-          id: null,
-        });
+      return signInRequired(reply);
     }
 
     const server = buildMcpServer(actor);
@@ -71,9 +76,13 @@ export default async function mcpRoutes(fastify) {
     return reply;
   });
 
-  // Stateless server: no server-initiated streams or sessions to end.
-  const notAllowed = async (request, reply) =>
-    reply
+  // Stateless server: no server-initiated streams or sessions to end. Still
+  // ask for sign-in first, so a client probing with GET finds the OAuth link.
+  const notAllowed = async (request, reply) => {
+    if (!(await actorFromBearer(request))) {
+      return signInRequired(reply);
+    }
+    return reply
       .headers(CORS)
       .header('Allow', 'POST, OPTIONS')
       .code(405)
@@ -82,6 +91,7 @@ export default async function mcpRoutes(fastify) {
         error: { code: -32000, message: 'Method not allowed' },
         id: null,
       });
+  };
   fastify.get('/mcp', notAllowed);
   fastify.delete('/mcp', notAllowed);
 }

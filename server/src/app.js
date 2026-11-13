@@ -67,7 +67,12 @@ export async function buildApp({ logger = true } = {}) {
   if (existsSync(config.staticDir)) {
     await fastify.register(fastifyStatic, { root: config.staticDir, wildcard: false });
     fastify.setNotFoundHandler((request, reply) => {
-      if (request.method === 'GET' && !request.url.startsWith('/api/')) {
+      // Discovery documents that do not exist must be a real 404, not the
+      // app's HTML: MCP clients probe several of them.
+      const isMachinePath = ['/api/', '/.well-known/', '/oauth/', '/mcp'].some((p) =>
+        request.url.startsWith(p)
+      );
+      if (request.method === 'GET' && !isMachinePath) {
         return reply.sendFile('index.html');
       }
       return reply.code(404).send({ message: 'Not found' });
