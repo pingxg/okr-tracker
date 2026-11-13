@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toast-notification';
@@ -45,6 +45,20 @@ const {
 
 const renderProgressValues = ref(false);
 const renderWidgets = ref(false);
+
+// The values list and widgets fade in after the details, but must not wait
+// for that animation: when the key result is already loaded on first open,
+// no enter animation runs and they would never show.
+watch(
+  () => !keyResultIsLoading.value && Boolean(keyResult.value),
+  (ready) => {
+    if (ready) {
+      renderProgressValues.value = true;
+      renderWidgets.value = true;
+    }
+  },
+  { immediate: true }
+);
 
 const { breadcrumbs, navigate } = useRouterBreadcrumbs(() => [
   { text: item.value.name, href: { name: 'ItemHome' } },

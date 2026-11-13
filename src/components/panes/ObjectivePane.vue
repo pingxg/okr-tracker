@@ -59,10 +59,22 @@ watch(
       renderWidgets.value = false;
       await nextTick();
       pane.value.$el.scrollTo({ top: 0, behavior: 'smooth' });
+      showSectionsWhenReady();
     }
   },
   { immediate: true }
 );
+
+// The key results and widgets fade in after the details, but must not wait
+// for that animation: when the objective is already loaded, no enter
+// animation runs and they would never show.
+function showSectionsWhenReady() {
+  if (!objectiveIsLoading.value && objective.value) {
+    renderKeyResults.value = true;
+    renderWidgets.value = true;
+  }
+}
+watch(() => !objectiveIsLoading.value && Boolean(objective.value), showSectionsWhenReady);
 
 watch(
   [objective, keyResults, keyResultsIsLoading],
