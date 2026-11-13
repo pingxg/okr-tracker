@@ -3,8 +3,9 @@
 #
 # The app uses the existing database "okr" on our Render Postgres instance
 # (shared with Metabase and Dagster), so no database is created here. Paste
-# its *internal* connection string as DATABASE_URL (same region, no TLS
-# needed). Secrets marked `sync: false` are entered in the Render dashboard.
+# its connection string as DATABASE_URL (internal preferred). The instance
+# requires TLS, so DATABASE_SSL stays true. Secrets marked `sync: false` are
+# entered in the Render dashboard.
 #
 # After the first deploy:
 #   - PUBLIC_URL = https://<service>.onrender.com (or your own domain)
@@ -22,9 +23,9 @@ services:
     envVars:
       - key: DATABASE_URL
         sync: false
-      # false for the internal connection string; true for the external one
+      # Render Postgres requires TLS (internal and external connections)
       - key: DATABASE_SSL
-        value: 'false'
+        value: 'true'
       - key: NODE_ENV
         value: production
       - key: SESSION_SECRET
