@@ -226,7 +226,13 @@ const showToolbar = computed(() => {
   }
 
   &__toolbar {
-    justify-content: space-between;
+    // Period and "Only mine" sit together on the left; the view switch
+    // (measurements only) on the right.
+    justify-content: flex-start;
+
+    :deep(.view-toggle-menu) {
+      margin-left: auto;
+    }
 
     @include bp-up(36rem) {
       @include get-text('pkt-txt-14');
