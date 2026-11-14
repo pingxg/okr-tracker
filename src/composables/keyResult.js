@@ -13,15 +13,20 @@ export function useKeyResult(keyResultId) {
   const { objective } = storeToRefs(useActiveObjectiveStore());
 
   const itemPath = computed(() => item.value?.path);
+  const objectivePath = computed(() => objective.value?.path);
 
   // Key result
   const _keyResultId = toRef(keyResultId);
 
   const keyResultRef = computed({
     get() {
+      // Wait for the objective: the key result is checked against it below.
+      // Loading both at once (opening a key result by its link) could
+      // otherwise reject the key result as "not found" when it arrived first.
       return (
         _keyResultId.value &&
         itemPath.value &&
+        objectivePath.value &&
         doc(db, 'keyResults', _keyResultId.value).withConverter({
           fromFirestore: (snapshot, options) => {
             const keyResult = globalFirestoreOptions.converter.fromFirestore(

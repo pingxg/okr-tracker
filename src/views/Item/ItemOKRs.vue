@@ -59,9 +59,14 @@ const newestObjective = computed(() => {
 watchPostEffect(() => {
   const { objectiveId, keyResultId } = route.params;
 
+  // A key result is only looked up once its objective is there (see
+  // useKeyResult), so judge it only after that.
   if (
     (objectiveId && !activeObjectiveIsLoading.value && !activeObjective.value) ||
-    (keyResultId && !activeKeyResultIsLoading.value && !activeKeyResult.value)
+    (keyResultId &&
+      activeObjective.value &&
+      !activeKeyResultIsLoading.value &&
+      !activeKeyResult.value)
   ) {
     notFoundState.value = true;
   } else {
