@@ -9,6 +9,8 @@ import { onlyMine } from '@/composables/onlyMine';
 import { useKpi } from '@/composables/kpi';
 import LineChart from '@/components/generic/LineChart.vue';
 import PeriodTrendTag from '@/components/PeriodTrendTag.vue';
+import StatusTag from '@/components/StatusTag.vue';
+import { measurementDue } from '@/util/okrStatus';
 import WidgetWrapper from './WidgetWrapper.vue';
 
 const i18n = useI18n();
@@ -29,6 +31,9 @@ const { kpi, isLoading, period, progress } = useKpi(props.kpiId);
 const { hasEditRights } = storeToRefs(useAuthStore());
 // No reordering while "Only mine" hides part of the list.
 const canReorder = computed(() => hasEditRights.value && !onlyMine.value);
+
+// No value within its update frequency.
+const isDue = computed(() => Boolean(kpi.value) && measurementDue(kpi.value));
 
 const progressIsFiltered = computed(() => period?.key !== 'all');
 
@@ -67,6 +72,7 @@ const chartOptions = computed(() => ({
 
     <div class="kpi-card-widget__inner">
       <div class="kpi-card-widget__trend">
+        <StatusTag v-if="isDue" :due="true" />
         <PeriodTrendTag
           v-if="progress.length"
           :kpi="kpi"

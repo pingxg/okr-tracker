@@ -29,6 +29,11 @@ const routes = [
     component: () => import('@/views/Api.vue'),
   },
   {
+    path: '/overview',
+    name: 'Overview',
+    component: () => import('@/views/Overview.vue'),
+  },
+  {
     path: '/ai-assistants',
     name: 'AiAssistants',
     component: () => import('@/views/AiAssistants.vue'),

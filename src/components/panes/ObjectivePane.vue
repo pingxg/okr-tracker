@@ -24,6 +24,7 @@ import FadeTransition from '@/components/generic/transitions/FadeTransition.vue'
 import { onlyMine } from '@/composables/onlyMine';
 import { ROLE_MANAGER, roleIn } from '@/config/jobPositions';
 import { assigneeIds } from '@/util/assignees';
+import { keyResultState } from '@/util/okrStatus';
 
 const { user, hasEditRights } = storeToRefs(useAuthStore());
 const { organizationTree } = storeToRefs(useActiveOrganizationStore());
@@ -157,6 +158,7 @@ function keyResultLinkProps(keyResult) {
     },
     title: keyResult.name,
     record: keyResult,
+    state: keyResultState(keyResult, objective.value),
     progression: keyResult.progression,
     owner: keyResult.parent?.name ? keyResult.parent : null,
     draggable: hasEditRights.value && !onlyMine.value,

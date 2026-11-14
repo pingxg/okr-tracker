@@ -37,6 +37,11 @@ function getItemRoute(slug) {
         />
 
         <template v-if="user && organization">
+          <NavMenuItem
+            icon="graph"
+            :text="$t('overview.title')"
+            :route="{ name: 'Overview' }"
+          />
           <NavMenuSeparator />
           <NavMenuItem
             icon="organization"

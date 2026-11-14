@@ -669,3 +669,61 @@ test('OAuth: confidential clients get a secret and must send it', { skip }, asyn
   assert.equal(ok.status, 200);
   assert.match((await ok.json()).access_token, /^okr_at_/);
 });
+
+test('status by hand, overview and my updates', { skip }, async () => {
+  const noReason = await call(pat.bob, 'record_key_result_progress', {
+    key_result_id: krId,
+    value: 45,
+    status: 'atRisk',
+  });
+  assert.equal(noReason.error, true, 'a status set by hand needs a reason');
+
+  const withReason = await call(pat.bob, 'record_key_result_progress', {
+    key_result_id: krId,
+    value: 45,
+    status: 'atRisk',
+    status_note: 'Supplier delay',
+  });
+  assert.equal(withReason.error, false, withReason.text);
+
+  const kr = (await call(pat.alice, 'get_key_result', { key_result_id: krId })).data;
+  assert.equal(kr.status, 'atRisk');
+  assert.equal(kr.statusSetByHand, true);
+  assert.equal(kr.statusNote, 'Supplier delay');
+  assert.ok(kr.lastUpdate, 'last update is kept on the key result');
+
+  const [overview] = (
+    await call(pat.carol, 'get_overview', { organization_ref: 'organizations/org1' })
+  ).data;
+  const team = overview.rows.find((r) => r.ref === 'products/team1');
+  assert.ok(team.keyResults.total >= 1);
+  assert.ok(team.keyResults.atRisk >= 1);
+  const flagged = overview.attention.find((a) => a.id === krId);
+  assert.equal(flagged.status, 'atRisk');
+  assert.equal(flagged.statusNote, 'Supplier delay');
+
+  const mine = (await call(pat.bob, 'get_my_updates')).data;
+  assert.ok(Array.isArray(mine.keyResults) && Array.isArray(mine.measurements));
+  assert.equal(
+    mine.keyResults.some((k) => k.id === krId),
+    false,
+    'just updated, so not due'
+  );
+  const erin = (await call(pat.erin, 'get_my_updates')).data;
+  assert.equal(
+    erin.keyResults.length + erin.measurements.length,
+    0,
+    'no role, nothing due'
+  );
+
+  // The same data reaches the web app.
+  const cookie = `okr_session=${session.createSession({
+    email: 'bob@x.fi',
+    provider: 'oidc',
+  })}`;
+  const web = await fetch(`${BASE}/api/v1/overview?organization=org1`, {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(web.status, 200);
+  assert.equal((await web.json()).organization.name, 'Org');
+});

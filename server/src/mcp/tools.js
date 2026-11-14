@@ -34,10 +34,14 @@ import {
   write,
 } from './okr.js';
 import { queryDocuments } from '../store/docstore.js';
+import { myUpdates, organizationOverview } from '../okr/overview.js';
+import { keyResultStatus } from '../../../common/okr/status.js';
 
 const INSTRUCTIONS = `OKR tracker of the organization. You act as the signed-in person and can do exactly what they can do in the web app, nothing more.
 
-Start with get_my_permissions to learn who the person is and what they may change, then list_structure for the organizations, departments and teams ("items"; a team's reference is "products/<id>").
+Start with get_my_permissions to learn who the person is and what they may change, then list_structure for the organizations, departments and teams ("items"; a team's reference is "products/<id>"). get_my_updates lists what the person should update now; get_overview gives the group's progress, status and overdue updates.
+
+Key result status (onTrack / atRisk / behind) is computed from progress against the time elapsed in the objective's period (up to 10 points behind: on track; 10–25: at risk; more: behind), unless set by hand with a reason at the latest check-in. Key results are due for an update after 7 days without a value; measurements after their update frequency.
 
 Rules the server enforces on every change:
 - Super admins may do everything; organization admins everything inside their organization.
@@ -99,9 +103,10 @@ async function parentsOf(actor, records) {
   return readMany(actor, paths);
 }
 
-function keyResultView(actor, kr, parents) {
+function keyResultView(actor, kr, parents, objective = null) {
   const parentPath = refPath(kr.data.parent);
   const parent = parents.get(parentPath)?.data;
+  const state = keyResultStatus(kr.data, objective?.startDate, objective?.endDate);
   return {
     id: kr.id,
     name: kr.data.name,
@@ -114,6 +119,11 @@ function keyResultView(actor, kr, parents) {
     progression: kr.data.progression ?? null,
     weight: kr.data.weight ?? 1,
     archived: kr.data.archived === true,
+    // onTrack | atRisk | behind: from progress vs. time, or set by hand
+    status: state.status,
+    statusSetByHand: Boolean(state.manual),
+    statusNote: state.note,
+    lastUpdate: plain(kr.data.lastProgressAt) || null,
     assignees: refList(kr.data.assignees).map(emailOf),
     yourRights: recordRights(actor, kr.data, parentPath, parent),
   };
@@ -233,6 +243,54 @@ export function buildMcpServer(actor) {
     })
   );
 
+  // --- overview and to-dos ---------------------------------------------------
+
+  server.registerTool(
+    'get_overview',
+    {
+      title: 'Group overview',
+      description:
+        'For an organization (default: all organizations): per organization, department and team the running objectives, progress against the time elapsed, key results on track / at risk / behind, and updates that are due; plus the key results needing attention. Status is computed from progress vs. time unless set by hand at the latest check-in.',
+      inputSchema: {
+        organization_ref: z
+          .string()
+          .optional()
+          .describe('"organizations/<id>" from list_structure; omit for all'),
+      },
+      annotations: READ,
+    },
+    tool(async ({ organization_ref: orgRef }) => {
+      let paths;
+      if (orgRef) {
+        const path = assertItemRef(orgRef);
+        if (!path.startsWith('organizations/')) {
+          throw new ToolError('organization_ref must be "organizations/<id>".');
+        }
+        paths = [path];
+      } else {
+        paths = (
+          await readQuery(actor, 'organizations', [where('archived', '==', false)])
+        ).map((o) => o.path);
+      }
+      const overviews = await Promise.all(
+        paths.map((p) => organizationOverview(actor, p))
+      );
+      return overviews.filter(Boolean);
+    })
+  );
+
+  server.registerTool(
+    'get_my_updates',
+    {
+      title: 'What I should update',
+      description:
+        'Key results and measurements the signed-in person should update now: assigned to them (or to nobody in a team where they have a role) and without a new value for too long (key results: 7 days; measurements: their update frequency).',
+      inputSchema: {},
+      annotations: READ,
+    },
+    tool(async () => myUpdates(actor))
+  );
+
   // --- structure -------------------------------------------------------------
 
   server.registerTool(
@@ -323,7 +381,7 @@ export function buildMcpServer(actor) {
           progression: o.data.progression ?? null,
           archived: o.data.archived === true,
           yourRights: { canEdit: itemRights(actor, itemPath, item).canEditOkrs },
-          keyResults: krLists[i].map((kr) => keyResultView(actor, kr, parents)),
+          keyResults: krLists[i].map((kr) => keyResultView(actor, kr, parents, o.data)),
         })),
       };
     })
@@ -348,8 +406,9 @@ export function buildMcpServer(actor) {
         limit(n || 20),
       ]);
       const parents = new Map([[record.parentPath, { data: record.parent }]]);
+      const objective = await readDoc(actor, refPath(record.data.objective));
       return {
-        ...keyResultView(actor, { id, data: record.data }, parents),
+        ...keyResultView(actor, { id, data: record.data }, parents, objective),
         objective: refPath(record.data.objective),
         progress: progress.map((p) => ({
           id: p.id,
@@ -367,45 +426,58 @@ export function buildMcpServer(actor) {
     {
       title: 'Record progress on a key result',
       description:
-        'Add a progress value to a key result. Allowed for admins, the assignees, or any team member when nobody is assigned.',
+        'Add a progress value to a key result (a check-in). Allowed for admins and project managers of its team, and for project coordinators when it is assigned to them or to nobody. Optionally set the status by hand (with a reason); otherwise it is computed from progress vs. time.',
       inputSchema: {
         key_result_id: z.string(),
         value: z.number(),
         date: dateString.optional().describe('Defaults to now; cannot be in the future'),
         comment: optionalText(1000),
+        status: z
+          .enum(['onTrack', 'atRisk', 'behind'])
+          .optional()
+          .describe('Set only when the person says so; leave out to compute it'),
+        status_note: optionalText(500).describe('Why, required with status'),
       },
       annotations: WRITE,
     },
-    tool(async ({ key_result_id: id, value, date, comment }) => {
-      const record = await loadRecord(actor, 'keyResults', id);
-      const timestamp = date ? dateValue(date, 'date') : new Date();
-      if (timestamp.getTime() > Date.now() + 60 * 1000) {
-        throw new ToolError('The date cannot be in the future.');
-      }
-      const path = `keyResults/${id}/progress/${autoId()}`;
-      await write(
-        actor,
-        [
-          {
-            type: 'create',
-            path,
-            data: {
-              value,
-              ...(comment ? { comment } : {}),
-              timestamp: tagTimestamp(timestamp),
-              ...created(actor),
+    tool(
+      async ({ key_result_id: id, value, date, comment, status, status_note: note }) => {
+        if (status && !note?.trim()) {
+          throw new ToolError(
+            'Give a reason (status_note) when setting the status by hand.'
+          );
+        }
+        const record = await loadRecord(actor, 'keyResults', id);
+        const timestamp = date ? dateValue(date, 'date') : new Date();
+        if (timestamp.getTime() > Date.now() + 60 * 1000) {
+          throw new ToolError('The date cannot be in the future.');
+        }
+        const path = `keyResults/${id}/progress/${autoId()}`;
+        await write(
+          actor,
+          [
+            {
+              type: 'create',
+              path,
+              data: {
+                value,
+                ...(comment ? { comment } : {}),
+                ...(status ? { status, statusNote: note.trim() } : {}),
+                timestamp: tagTimestamp(timestamp),
+                ...created(actor),
+              },
             },
-          },
-        ],
-        record.rights.reason
-      );
-      return {
-        ok: true,
-        keyResult: record.data.name,
-        value,
-        date: timestamp.toISOString(),
-      };
-    })
+          ],
+          record.rights.reason
+        );
+        return {
+          ok: true,
+          keyResult: record.data.name,
+          value,
+          date: timestamp.toISOString(),
+        };
+      }
+    )
   );
 
   server.registerTool(

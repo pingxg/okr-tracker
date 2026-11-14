@@ -28,6 +28,8 @@ import ProgressModal from '@/components/modals/ProgressModal/ProgressModal.vue';
 import ProgressBar from '@/components/ProgressBar.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import AssigneeNames from '@/components/AssigneeNames.vue';
+import StatusTag from '@/components/StatusTag.vue';
+import { keyResultState } from '@/util/okrStatus';
 import FadeTransition from '@/components/generic/transitions/FadeTransition.vue';
 
 const router = useRouter();
@@ -42,6 +44,11 @@ const {
   isLoading: keyResultIsLoading,
   progress,
 } = storeToRefs(useActiveKeyResultStore());
+
+// Status (computed or set at the latest check-in) and whether an update is due.
+const state = computed(() =>
+  keyResult.value ? keyResultState(keyResult.value, objective.value) : null
+);
 
 const renderProgressValues = ref(false);
 const renderWidgets = ref(false);
@@ -252,7 +259,16 @@ async function deleteProgressRecord(id, modalCloseHandler) {
           </pkt-button>
         </div>
 
-        <AssigneeNames :record="keyResult" class="mb-size-16" />
+        <div class="key-result-pane__meta mb-size-16">
+          <StatusTag
+            v-if="state"
+            :status="state.status"
+            :manual="!!state.manual"
+            :note="state.note"
+            :due="state.due"
+          />
+          <AssigneeNames :record="keyResult" />
+        </div>
 
         <HTMLOutput
           v-if="keyResult.description"
@@ -324,6 +340,7 @@ async function deleteProgressRecord(id, modalCloseHandler) {
       v-if="showValueModal"
       :record="chosenProgressRecord"
       :unit="keyResult.unit"
+      :auto-status="state?.auto"
       @create-record="createProgressRecord"
       @update-record="updateProgressRecord"
       @delete-record="deleteProgressRecord"
@@ -335,6 +352,13 @@ async function deleteProgressRecord(id, modalCloseHandler) {
 <style lang="scss" scoped>
 .key-result-pane {
   background-color: var(--color-gray);
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+  }
 
   &__details {
     display: flex;

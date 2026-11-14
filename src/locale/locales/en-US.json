@@ -707,5 +707,46 @@
       "disconnectHelp": "The assistant loses access immediately and has to be allowed again.",
       "empty": "No assistants connected with Microsoft sign-in yet."
     }
+  },
+  "status": {
+    "label": "Status",
+    "help": "Computed from progress and the time elapsed. Set it by hand, with a reason, when you know better.",
+    "automatic": "Automatic",
+    "automaticNow": "Automatic (now: {status})",
+    "onTrack": "On track",
+    "atRisk": "At risk",
+    "behind": "Behind",
+    "due": "Needs update",
+    "reason": "Reason",
+    "setByHand": "Set by hand",
+    "computed": "Computed from progress and time"
+  },
+  "overview": {
+    "title": "Group overview",
+    "open": "Open group overview",
+    "explain": "Running objectives as of {date}. The line on each bar marks the time elapsed; key result status is computed from progress and time unless set by hand.",
+    "failed": "Could not load the overview.",
+    "noOrganization": {
+      "heading": "No organization chosen",
+      "body": "Choose the organization to show:"
+    },
+    "columns": {
+      "item": "Organization / department / team",
+      "objectives": "Objectives",
+      "progress": "Progress / time",
+      "status": "Key results",
+      "due": "Updates due",
+      "lastUpdate": "Last update"
+    },
+    "progressVsTime": "progress {progress}, time {time}",
+    "dueCounts": "key results {keyResults} · measurements {measurements}",
+    "attention": "Key results needing attention",
+    "allOnTrack": "All running key results are on track."
+  },
+  "myUpdates": {
+    "title": "Needs your update",
+    "none": "Nothing needs your update right now.",
+    "lastUpdate": "last updated {date}",
+    "never": "no value yet"
   }
 }

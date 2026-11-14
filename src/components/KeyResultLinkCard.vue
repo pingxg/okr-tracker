@@ -2,10 +2,17 @@
 import ProgressBar from '@/components/ProgressBar.vue';
 import ItemTag from '@/components/ItemTag.vue';
 import AssigneeNames from '@/components/AssigneeNames.vue';
+import StatusTag from '@/components/StatusTag.vue';
 
 defineProps({
   // The key result itself, for showing who it is assigned to.
   record: {
+    type: Object,
+    required: false,
+    default: null,
+  },
+  // { status, manual, note, due } (see util/okrStatus)
+  state: {
     type: Object,
     required: false,
     default: null,
@@ -62,6 +69,14 @@ defineProps({
         <div>
           <ProgressBar :progression="progression" compact />
           <ItemTag v-if="owner" :item="owner" class="pkt-txt-12-light" />
+          <StatusTag
+            v-if="state"
+            class="mt-size-8"
+            :status="state.status"
+            :manual="!!state.manual"
+            :note="state.note"
+            :due="state.due"
+          />
           <AssigneeNames v-if="record" :record="record" class="mt-size-8" />
         </div>
       </div>

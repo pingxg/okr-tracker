@@ -707,5 +707,46 @@
       "disconnectHelp": "断开后，这个 AI 助理会立即失去访问权限，需要重新登录授权。",
       "empty": "还没有通过 Microsoft 登录连接的 AI 助理。"
     }
+  },
+  "status": {
+    "label": "状态",
+    "help": "默认按进度和已过去的时间自动计算。你更清楚实际情况时，可以手动设置并写明原因。",
+    "automatic": "自动",
+    "automaticNow": "自动（当前：{status}）",
+    "onTrack": "正常",
+    "atRisk": "有风险",
+    "behind": "落后",
+    "due": "需要更新",
+    "reason": "原因",
+    "setByHand": "手动设置",
+    "computed": "按进度和时间自动计算"
+  },
+  "overview": {
+    "title": "集团总览",
+    "open": "查看集团总览",
+    "explain": "进行中的目标，截至 {date}。进度条上的竖线是时间进度；关键结果状态按进度和时间自动计算，手动设置的以手动为准。",
+    "failed": "无法加载总览。",
+    "noOrganization": {
+      "heading": "还没有选择组织",
+      "body": "选择要查看的组织："
+    },
+    "columns": {
+      "item": "组织 / 部门 / 团队",
+      "objectives": "目标",
+      "progress": "进度 / 时间",
+      "status": "关键结果状态",
+      "due": "待更新",
+      "lastUpdate": "最近更新"
+    },
+    "progressVsTime": "进度 {progress}，时间 {time}",
+    "dueCounts": "关键结果 {keyResults} · 指标 {measurements}",
+    "attention": "需要关注的关键结果",
+    "allOnTrack": "所有进行中的关键结果都正常。"
+  },
+  "myUpdates": {
+    "title": "需要你更新",
+    "none": "目前没有需要你更新的关键结果或指标。",
+    "lastUpdate": "上次更新 {date}",
+    "never": "还没有录入过"
   }
 }

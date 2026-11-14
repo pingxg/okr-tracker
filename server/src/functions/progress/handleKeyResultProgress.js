@@ -19,19 +19,28 @@ export const updateKeyResultProgress = async (change, { params }) => {
 
   const { startValue, targetValue, objective } = keyRes.data();
 
-  const currentValue = await keyResultRef
+  const latest = await keyResultRef
     .collection('progress')
     .orderBy('timestamp', 'desc')
     .limit(1)
     .get()
     .then((snapshot) => snapshot.docs)
-    .then((docs) => (docs.length ? docs[0].data().value : startValue));
+    .then((docs) => (docs.length ? docs[0].data() : null));
+  const currentValue = latest ? latest.value : startValue;
 
   const scale = scaleLinear().domain([startValue, targetValue]).clamp(true);
   const progression = scale(currentValue);
 
   try {
-    await keyResultRef.update({ currentValue, progression });
+    await keyResultRef.update({
+      currentValue,
+      progression,
+      // Manual status of the latest check-in (null: computed), and when the
+      // latest progress was recorded, for status tags and "to update" lists.
+      status: latest?.status || null,
+      statusNote: latest?.status ? latest.statusNote || '' : '',
+      lastProgressAt: latest?.timestamp || null,
+    });
   } catch (error) {
     console.log('Could not update key result', keyResultId);
   }

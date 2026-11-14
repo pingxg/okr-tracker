@@ -7,6 +7,8 @@ import { useActiveOrganizationStore } from '@/store/activeOrganization';
 import BuildingsGraphic from '@/components/graphics/BuildingsGraphic.vue';
 import OrganizationCard from '@/components/Navigation/header/OrganizationCard.vue';
 import ItemLinkCard from '@/components/ItemLinkCard.vue';
+import MyUpdates from '@/components/MyUpdates.vue';
+import '@oslokommune/punkt-elements/dist/pkt-button.js';
 
 const i18n = useI18n();
 
@@ -53,6 +55,9 @@ function sortByLocale(arr) {
               @click="activeOrganizationStore.setOrganization(item.id)"
             />
           </div>
+
+          <!-- Personal, so shown before an organization is chosen too. -->
+          <MyUpdates class="home-page__updates" />
         </template>
 
         <template v-else>
@@ -64,7 +69,19 @@ function sortByLocale(arr) {
               centered
             />
             <p>{{ organization.missionStatement }}</p>
+            <RouterLink :to="{ name: 'Overview' }" class="home-page__overview-link">
+              <pkt-button
+                skin="secondary"
+                size="small"
+                variant="icon-left"
+                iconName="graph"
+              >
+                <span>{{ $t('overview.open') }}</span>
+              </pkt-button>
+            </RouterLink>
           </div>
+
+          <MyUpdates class="home-page__updates" />
 
           <div
             v-if="organizationTree && organizationTree.children.length"
@@ -183,6 +200,17 @@ function sortByLocale(arr) {
     flex-direction: column;
     gap: 1rem;
     width: 100%;
+  }
+
+  &__overview-link {
+    display: inline-block;
+    margin-top: 1rem;
+    text-decoration: none;
+  }
+
+  &__updates {
+    width: 100%;
+    margin-bottom: 2rem;
   }
 
   &__organization {
